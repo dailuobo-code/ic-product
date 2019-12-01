@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://dubbo.apache.org/schema/dubbo
+       http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+    <dubbo:registry protocol="zookeeper" address="${dubbo.city.registry.address}" id="dubboRegistry"></dubbo:registry>
+    <dubbo:registry protocol="zookeeper" address="${dubbo.global.registry.address}" id="globalRegistry" default="false"></dubbo:registry>
+    <dubbo:reference id="iMarketingInventory" interface="com.mallcai.service.inventory.marketing.api.IMarketingInventory" check="false" timeout="3000"></dubbo:reference>
+    <dubbo:reference id="iProductService" interface="com.mallcai.service.openapi.IProductService" timeout="10000" check="false"></dubbo:reference>
+    <dubbo:reference id="IProductTagReadService" interface="com.mallcai.service.api.IProductTagReadService" timeout="10000" check="false" retries="0"></dubbo:reference>
+    <dubbo:reference id="iMerchantService" interface="com.mallcai.api.model.dubbo.IMerchantService" timeout="100000" check="false" registry="dubboRegistry"></dubbo:reference>
+    <dubbo:reference id="iCityGlobalService" interface="com.mallcai.service.api.ICityGlobalService" timeout="100000" check="false" registry="dubboRegistry"></dubbo:reference>
+
+
+
+    <dubbo:reference id="mgrProductService"
+                     interface="com.mallcai.api.product.backend.MgrProductService" check="false" timeout="3000"></dubbo:reference>
+
+    <dubbo:reference id="mgrFrontCategoryService"
+                     interface="com.mallcai.api.category.front.MgrFrontCategoryService" check="false" timeout="5000"></dubbo:reference>
+
+
+    <dubbo:reference id="categoryService"
+                     interface="com.mallcai.api.category.CategoryService" check="false" timeout="5000"></dubbo:reference>
+
+    <dubbo:reference id="iCategoryService"
+                     interface="com.mallcai.service.openapi.ICategoryService" check="false" timeout="5000"></dubbo:reference>
+
+    <dubbo:reference id="iStockReadService" interface="com.mallcai.service.inventory.marketing.api.IStockReadService" check="false" timeout="5000"></dubbo:reference>
+    <dubbo:reference id="iStockWriteService" interface="com.mallcai.service.inventory.marketing.api.IStockWriteService" check="false" timeout="5000" retries="0"></dubbo:reference>
+</beans>

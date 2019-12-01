@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.ClassifyMapper">
+    <select id="parentById" parameterType="int" resultMap="classifyMap">
+        SELECT *
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id}
+    </select>
+
+    <resultMap type="Classify" id="classifyMap">
+        <association property="parent" column="father_id" select="parentById"/>
+    </resultMap>
+
+    <select id="selectAll" parameterType="map" resultMap="classifyMap">
+        select *
+        from
+        tbl_product_classify
+        <where>
+            del_flag = 1
+            <if test="level != null">
+                and level = #{level}
+            </if>
+            <if test="parentId != null">
+                and father_id = #{parentId}
+            </if>
+            <if test="classifyName!=null">
+                and classify_name=#{classifyName}
+            </if>
+        </where>
+        order by classify_id
+    </select>
+
+    <select id="selectClass" parameterType="map" resultMap="classifyMap">
+        select *
+        from
+        tbl_product_classify
+        <where>
+            del_flag = 1
+            <if test="level != null">
+                and level = #{level}
+            </if>
+            <if test="parentId != null">
+                and father_id = #{parentId}
+            </if>
+            <if test="classifyName!=null">
+                and classify_name like concat('%', #{classifyName}, '%')
+            </if>
+            <if test="classifyNo!=null">
+                and classify_no=#{classifyNo}
+            </if>
+        </where>
+        order by classify_id
+    </select>
+
+    <insert id="add" parameterType="Classify" useGeneratedKeys="true"
+            keyProperty="classifyId" keyColumn="classify_id">
+        INSERT INTO
+        tbl_product_classify (classify_no, classify_name,
+        icon_url, level, father_id,
+        create_user_id, create_time, show_order
+        <if test="level == 2">
+            , pickup_order
+        </if>
+        )
+        VALUES (#{classifyNo}, #{classifyName}, #{iconUrl},
+        #{level}, #{parent.classifyId},
+        #{createUserId},
+        #{createTime},
+        #{showOrder}
+        <if test="level == 2">
+            , #{pickupOrder}
+        </if>
+        )
+    </insert>
+
+    <delete id="delete" parameterType="list">
+        delete from tbl_product_classify
+        <where>
+            classify_id in
+            <foreach collection="list" open="(" close=")" separator=","
+                     item="item">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <update id="update" parameterType="Classify">
+        UPDATE tbl_product_classify
+        SET classify_no = #{classifyNo},
+        classify_name = #{classifyName},
+        icon_url = #{iconUrl},
+        update_user_id = #{updateUserId},
+        update_time = #{updateTime},
+        show_order = #{showOrder}
+        <if test="pickupOrder != null">
+            , pickup_order = #{pickupOrder}
+        </if>
+        WHERE
+        classify_id = #{classifyId}
+    </update>
+
+    <select id="getDDLClassifies" parameterType="map" resultType="DDLClassify">
+        select classify_id, classify_name
+        from
+        tbl_product_classify
+        <where>
+            del_flag = 1
+            <if test="level != null">
+                and level = #{level}
+            </if>
+            <if test="parentId != null">
+                and father_id = #{parentId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getProductClassfyFirst" resultType="com.dailuobo.api.domain.entity.ProductClassify">
+        SELECT
+			pc.classify_id,pc.classify_no,pc.classify_name,pc.icon_url,pc.show_order,pc.create_time,pc.update_time
+		FROM
+			tbl_product_classify pc
+		WHERE
+			pc.`level` = 1
+		AND pc.del_flag = 1
+		AND EXISTS (SELECT 1 FROM tbl_product_classify pc2 WHERE pc2.father_id = pc.classify_id AND pc2.del_flag = 1)
+		ORDER BY pc.show_order ASC,pc.create_time ASC,pc.update_time ASC
+    </select>
+    <select id="getProductClassifySecond" resultType="com.dailuobo.api.domain.entity.ProductClassify">
+        SELECT
+			pc.classify_id,pc.classify_no,pc.classify_name,pc.icon_url,pc.show_order,pc.create_time,pc.update_time,pc.father_id
+		FROM
+			tbl_product_classify pc
+		WHERE
+			pc.father_id = #{classifyId}
+		AND	pc.`level` = 2
+		AND pc.del_flag = 1
+		ORDER BY pc.show_order ASC,pc.create_time ASC,pc.update_time ASC
+    </select>
+    <select id="getProductClassifySecondAll" resultType="com.dailuobo.api.domain.entity.ProductClassify">
+        SELECT
+			pc.classify_id,pc.classify_no,pc.classify_name,pc.icon_url,pc.show_order,pc.create_time,pc.update_time,pc.father_id
+		FROM
+			tbl_product_classify pc
+		WHERE
+			pc.`level` = 2
+		AND pc.del_flag = 1
+		ORDER BY pc.show_order ASC,pc.create_time ASC,pc.update_time ASC
+    </select>
+    <select id="selectClassifyById"  resultMap="classifyMap">
+        SELECT *
+        FROM
+        tbl_product_classify
+        WHERE classify_id = #{id}
+    </select>
+
+
+    <select id="getById"  resultType="com.dailuobo.api.domain.entity.ProductClassify">
+        SELECT 	classify_id, classify_no, classify_name,
+                icon_url, show_order, create_time, update_time, father_id
+        FROM
+        tbl_product_classify
+        WHERE classify_id = #{id} AND del_flag = 1
+    </select>
+
+
+    <select id="getByClassifyIds"  resultType="com.dailuobo.api.domain.entity.ProductClassify">
+        SELECT 	classify_id, classify_no, classify_name,
+                icon_url, show_order, create_time, update_time, father_id
+        FROM
+        tbl_product_classify
+        WHERE del_flag = 1
+          and classify_id in
+        <foreach collection="classifyIds" item="classifyId"
+                 open="(" close=")" separator=",">
+            #{classifyId}
+        </foreach>
+    </select>
+
+</mapper>

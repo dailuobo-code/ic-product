@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.PieceProductMapper">
+
+	<select id="selectAll" parameterType="map" resultType="map">
+		SELECT tmi.available ,tpp.id,tpp.tag,tpp.piece_title as pieceTitle,tpp.create_time AS createTime,tcp.product_no as productNo,tpp.people_num as peopleNum,tpp.initial_num as initialNum,
+		tpp.product_pic AS productPic,tpp.city_product_id as cityProductId,tcp.show_name as showName FROM tbl_piece_product tpp LEFT JOIN tbl_city_product tcp  ON tpp.city_product_id = tcp.city_product_id
+		LEFT JOIN tbl_marketing_inventory tmi  ON tpp.city_product_id = tmi.city_product_id
+		<where>
+			tpp.city_id = #{cityId} and tpp.status =1 and tmi.store_id=0
+			<if test="cityProductId !=null">
+				AND tpp.city_product_id =#{cityProductId}
+			</if>
+			<if test="tag !=null">
+				AND tpp.tag LIKE concat('%', #{tag}, '%')
+			</if>
+		</where>
+		ORDER BY tpp.id desc
+	</select>
+
+	<!--返回符合条件的拼团商品-->
+	<select id="getAddPieceProduct" resultType="map">
+		SELECT tcp.city_product_id as cityProductId ,tcp.product_no AS  productNo ,tcp.show_name as showName FROM tbl_city_product tcp
+		LEFT JOIN tbl_marketing_inventory tmi ON tcp.city_product_id=tmi.city_product_id
+		WHERE tcp.city_id =#{cityId} and tcp.hq_status =1 and tcp.city_status=2 and tcp.city_product_id not in (select city_product_id from tbl_piece_product
+			where status=1 and city_id=#{cityId}) and tmi.store_id=0
+
+	</select>
+
+	<!--该产品是否共享库存-->
+	<select id="getShareCounts" resultType="int">
+		SELECT  count(0) FROM  tbl_marketing_inventory WHERE city_product_id=#{cityProductId} and store_id=0;
+
+	</select>
+
+
+	<insert id="add" parameterType="com.dailuobo.api.domain.entity.PieceProduct">
+		insert into tbl_piece_product
+		(piece_title,city_id,city_product_id,people_num,product_pic,initial_num,status,tag,create_user_id,create_time)
+		VALUES
+		(#{pieceTitle},#{cityId},#{cityProductId},#{peopleNum},#{productPic},#{initialNum},1,#{tag},#{createUserId},now())
+
+	</insert>
+
+	<!--有效的萝卜拼商品数-->
+	<select id="getPieceProductCount" resultType="int">
+		SELECT count(0) FROM  tbl_piece_product tpp WHERE  tpp.city_id= #{cityId} and tpp.city_product_id =#{cityProductId} and tpp.status=1
+	</select>
+
+	<update id="update" parameterType="com.dailuobo.api.domain.entity.PieceProduct">
+		UPDATE tbl_piece_product
+		<set>
+			<if test="tag !=null">
+				tag = #{tag},
+			</if>
+			<if test="pieceTitle !=null">
+				piece_title = #{pieceTitle},
+			</if>
+			<if test="cityProductId != null">
+				city_product_id = #{cityProductId},
+			</if>
+			<if test="pieceType != null">
+				piece_type = #{pieceType},
+			</if>
+			<if test="peopleNum != null">
+				people_num = #{peopleNum},
+			</if>
+			<if test="alonePrice != null">
+				alone_price = #{alonePrice},
+			</if>
+			<if test="productPic != null">
+				product_pic = #{productPic},
+			</if>
+			<if test="initialNum != null">
+				initial_num = #{initialNum},
+			</if>
+			<if test="updateUserId != null">
+				update_user_id = #{updateUserId},
+			</if>
+			<if test="productName != null">
+				product_name = #{productName}，
+			</if>
+			update_time = now()
+		</set>
+		WHERE id = #{id};
+	</update>
+
+	<!--萝卜拼商品删除-->
+	<update id="deletePieceProduct">
+
+		UPDATE tbl_piece_product SET status =2 ,delete_user_id = #{deleteUseId},delete_time = now() where id=#{pieceProductId};
+
+	</update>
+
+	<!--获取在进行中的拼团数-->
+	<select id="getPieceByProduct" parameterType="map" resultType="int">
+
+		SELECT count(0) FROM  tbl_piece tp WHERE  tp.piece_product_id =#{pieceProductId} and tp.city_id=#{cityId}
+		 and(tp.status=1 or( tp.status =0 and #{dateNow} &lt; piece_end_time ) )and tp.status !=9 ;
+
+	</select>
+
+
+	<!--判断商品是不是全是全民拼-->
+	<select id="checkPieceProduct" parameterType="map" resultType="int">
+
+		SELECT count(0) FROM tbl_piece_product WHERE piece_type != 2 AND id IN
+		<foreach collection="ids" item="id"
+				 open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+
+	</select>
+
+	<!--批量开团，返回商品信息-->
+	<select id="getProductByIds" resultType="com.dailuobo.api.domain.entity.PieceProduct">
+
+		SELECT tpp.id,tpp.piece_title AS pieceTitle,tpp.city_id AS  cityId,tpp.city_product_id AS cityProductId,tpp.people_num AS peopleNum,
+		tpp.product_pic AS productPic,tpp.initial_num AS initialNum,tmi.available
+		FROM  tbl_piece_product tpp LEFT JOIN tbl_marketing_inventory tmi ON tpp.city_product_id = tmi.city_product_id
+		WHERE tmi.store_id=0 and  tpp.id IN
+		<foreach collection="pieceIds" item="id"
+				 open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+
+	</select>
+
+	<!--查看商品是否都是共享库存-->
+	<select id="getIsShareByIds" resultType="map">
+
+		SELECT city_product_id AS cityProductId,count(city_product_id) as isShare FROM tbl_city_product WHERE city_id=#{cityId}  and is_share=1
+		and  city_product_id in
+		<foreach collection="productIds" item="id"
+				 open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+		group by city_product_id
+	</select>
+
+
+	<!--批量开团-->
+	<insert id="insertPieceGroup">
+		<foreach collection="pieceGroups" item="pieceGroup" separator=";" close=";">
+			INSERT INTO tbl_piece (event_id,piece_product_id, piece_title, city_id,city_product_id,piece_type,people_num,piece_start_time
+			,piece_end_time,pickup_time,status,product_pic,available,initial_num,can_piece,stick,create_user_id,create_time)
+			VALUES (#{pieceGroup.eventId},#{pieceGroup.pieceProductId}, #{pieceGroup.pieceTitle}, #{pieceGroup.cityId}, #{pieceGroup.cityProductId}
+			, #{pieceGroup.pieceType}, #{pieceGroup.peopleNum}, #{pieceGroup.pieceStartTime}, #{pieceGroup.pieceEndTime}
+			, #{pieceGroup.pickupTime}, 0, #{pieceGroup.productPic},#{pieceGroup.available}, #{pieceGroup.initialNum}, 1, 0, #{pieceGroup.createUserId},now())
+		</foreach>
+
+	</insert>
+
+	<!--根据id查询拼团-->
+	<select id="getPieceGroupById" resultType="map">
+
+		SELECT status,piece_start_time AS pieceStartTime,piece_end_time AS pieceEndTime FROM tbl_piece WHERE id=#{id};
+
+	</select>
+
+	<!--同类型，时间范围内的活动-->
+	<select id="getSameEvent" resultType="int">
+		select count(0) from tbl_piece_event where piece_type=#{pieceType} and city_id=#{cityId} and  if(#{pieceEndTime} &lt; date_sub(piece_start_time,interval 10 minute) or #{pieceStartTime} > date_add(piece_end_time,interval 10 minute),1=0,1=1) and status !=9;
+	</select>
+
+	<!--不同类型，时间范围内的团-->
+	<select id="getPieceByType" resultType="int">
+		select city_product_id  from tbl_piece where piece_type!=#{pieceType} and city_id=#{cityId} and  if(#{pieceEndTime} &lt; piece_start_time or #{pieceStartTime} > piece_end_time,1=0,1=1) and status !=9;
+	</select>
+
+
+	<!--拼团编辑-->
+	<update id="updatePieceGroup" parameterType="com.dailuobo.api.domain.entity.PieceGroup">
+		UPDATE tbl_piece SET
+		<if test="pickupTime !=null">
+			pickup_time= #{pickupTime},
+		</if>
+		update_user_id =#{updateUserId},update_time= now()
+		where id=#{id}
+	</update>
+
+	<!--拼团删除-->
+	<update id="deletePieceGroup" >
+		UPDATE tbl_piece SET status=9,delete_user_id=#{deleteUserId},delete_time= now() where id=#{id};
+
+	</update>
+	<update id="lockPiece" >
+		UPDATE tbl_piece SET status=3,update_user_id =#{updateUserId},update_time= now() where id=#{id};
+	</update>
+
+	<!--新增团拼活动-->
+	<insert id="insertPieceEvent" parameterType="com.dailuobo.api.domain.entity.PieceEvent" useGeneratedKeys="true" keyProperty="id">
+
+		insert into tbl_piece_event
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="id != null" >
+				id,
+			</if>
+			<if test="eventName != null" >
+				event_name,
+			</if>
+			<if test=" cityId!= null" >
+				city_id ,
+			</if>
+			<if test="pieceType != null" >
+				piece_type,
+			</if>
+			<if test="pieceStartTime != null" >
+				piece_start_time,
+			</if>
+			<if test="pieceEndTime != null" >
+				piece_end_time,
+			</if>
+			<if test="pickupTime != null" >
+				pickup_time,
+			</if>
+			<if test="createUserId != null" >
+				create_user_id,
+			</if>
+			create_time,
+			status
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="id != null" >
+				#{id},
+			</if>
+			<if test="eventName != null" >
+				#{eventName},
+			</if>
+			<if test=" cityId!= null" >
+				#{cityId},
+			</if>
+			<if test="pieceType != null" >
+				#{pieceType},
+			</if>
+			<if test="pieceStartTime != null" >
+				#{pieceStartTime},
+			</if>
+			<if test="pieceEndTime != null" >
+				#{pieceEndTime},
+			</if>
+			<if test="pickupTime != null" >
+				#{pickupTime},
+			</if>
+			<if test="createUserId != null" >
+				#{createUserId},
+			</if>
+			now(),
+			0
+		</trim>
+	</insert>
+
+	<!--活动编辑-->
+	<update id="updatePieceEvent" parameterType="com.dailuobo.api.domain.entity.PieceEvent">
+		UPDATE tbl_piece_event SET 
+		<if test="eventName !=null">
+			event_name =#{eventName},
+		</if>
+		<if test="pieceType !=null">
+			piece_type =#{pieceType},
+		</if>
+		<if test="status !=null">
+			status =#{status},
+		</if>
+		<if test="pieceStartTime !=null">
+			piece_start_time =#{pieceStartTime},
+		</if>
+		<if test="pieceEndTime !=null">
+			piece_end_time =#{pieceEndTime},
+		</if>
+		<if test="pickupTime !=null">
+			pickup_time =#{pickupTime},
+		</if>
+		<if test="updateUserId !=null">
+			update_user_id =#{updateUserId},
+		</if>
+		update_time = now()
+		where id=#{id}
+		
+	</update>
+
+
+	<!--编辑活动，同时编辑团下面所有拼团-->
+	<update id="updatePieceByEvent" parameterType="com.dailuobo.api.domain.entity.PieceEvent">
+
+		UPDATE tbl_piece SET
+		<if test="status !=null ">
+			status =#{status},
+		</if>
+		<if test="pieceStartTime !=null">
+			piece_start_time =#{pieceStartTime},
+		</if>
+		<if test="pieceEndTime !=null">
+			piece_end_time =#{pieceEndTime},
+		</if>
+		<if test="pickupTime !=null">
+			pickup_time =#{pickupTime},
+		</if>
+		update_user_id =#{updateUserId},update_time= now() where
+		id in
+		<foreach collection="pieceIds" item="id"
+				 open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+
+	</update>
+
+	<!--活动删除-->
+	<update id="deleteEvent" >
+		UPDATE tbl_piece_event SET status=9,delete_time=now() WHERE id=#{id};
+		update tbl_piece set status =9 where event_id =#{id};
+	</update>
+
+
+	<!--查询pieceEvent-->
+	<select id="getPieceEvent" resultType="map">
+
+		SELECT  id,event_name AS eventName ,piece_type AS  pieceType ,piece_start_time AS pieceStartTime,piece_end_time AS pieceEndTime,pickup_time AS pickupTime,status
+		FROM  tbl_piece_event WHERE city_id =#{cityId} and status !=9
+		<if test="eventName !=null">
+			and event_name  LIKE concat('%', #{eventName}, '%')
+		</if>
+		<if test="pieceType !=null">
+			and piece_type =#{pieceType}
+		</if>
+		<if test="status !=null">
+			and status =#{status}
+		</if>
+		<if test="pieceStartTime !=null">
+			and piece_start_time >= #{pieceStartTime}
+		</if>
+		<if test="pieceEndTime !=null">
+			and piece_end_time &lt;= #{pieceEndTime}
+		</if>
+		order by id desc
+
+	</select>
+
+
+
+
+
+	<!--根据活动查找拼团-->
+	<select id="getPieceGroupByEvent" resultType="map">
+		SELECT tp.id,tp.piece_title as pieceTitle,tcp.product_no AS productNo,tp.piece_type AS pieceType,tcp.show_name AS  showName,tp.available,
+		tp.people_num AS peopleNum,tp.piece_start_time as pieceStartTime,tp.city_id as cityId,tp.stick,tp.stick_time AS stickTime,
+		tp.piece_end_time as pieceEndTime,tp.pickup_time as pickupTime,tp.status,tp.create_time as createTime
+		 FROM tbl_piece tp  LEFT JOIN tbl_city_product tcp  ON  tp.city_product_id = tcp.city_product_id
+		 WHERE tp.event_id =#{eventId} and tp.status !=9;
+	</select>
+
+	<!--根据id查找event-->
+	<select id="getRightEvent" resultType="map">
+
+			SELECT city_id as cityId,piece_type as pieceType,piece_start_time as pieceStartTime ,piece_end_time as pieceEndTime , status FROM tbl_piece_event WHERE  id =#{id}
+
+	</select>
+
+	<!--拼团置顶-->
+	<update id="stickPiece">
+		UPDATE tbl_piece SET stick=1 ,stick_time= now() WHERE  id =#{pieceId}
+	</update>
+
+	<!--根据商品查找团-->
+	<select id="getPieceByCityProductId" resultType="map">
+		SELECT id ,piece_start_time as pieceStartTime,piece_end_time AS pieceEndTime,status,piece_type as pieceType FROM tbl_piece WHERE city_product_id =#{cityProductId} and status in(0,1);
+
+	</select>
+
+	<!--更新可用量-->
+	<update id="updatePieceAvaible" >
+		UPDATE tbl_piece SET  available = available+#{delta} where id in
+		<foreach collection="ids" item="id"
+				 open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+
+	</update>
+
+	<!--活动下面未删除的商品-->
+	<select id="getPieceByEventNoDel" resultType="integer">
+		SELECT id FROM tbl_piece WHERE  event_id=#{eventId} and status!=9;
+	</select>
+
+	<!--查询pieceEvent-->
+	<select id="getPieceInfoById"  parameterType="map"  resultType="com.dailuobo.api.domain.entity.PieceGroup">
+		SELECT  event_id as eventId from tbl_piece where id = #{pieceId}
+	</select>
+
+	<!--查询pieceEvent-->
+	<select id="getPieceGroupInfoById"  parameterType="map"  resultType="com.dailuobo.api.domain.entity.PieceGroup">
+		SELECT  event_id as eventId from tbl_piece_group where id = #{pieceGroupId}
+	</select>
+</mapper>

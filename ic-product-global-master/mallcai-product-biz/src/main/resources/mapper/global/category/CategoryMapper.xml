@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.biz.category.dao.mapper.CategoryMapper">
+    <insert id="createCategory" parameterType="categoryDO" useGeneratedKeys="true" keyProperty="classifyId">
+        INSERT INTO
+        tbl_product_classify (classify_no, classify_name,
+        icon_url, level, father_id,
+        create_user_id, create_time, show_order
+        <if test="level == 2">
+            , pickup_order
+        </if>
+        )
+        VALUES (#{classifyNo}, #{classifyName}, #{iconUrl},
+        #{level}, #{fatherId},
+        #{createUserId},
+        #{createTime},
+        #{showOrder}
+        <if test="level == 2">
+            , #{pickupOrder}
+        </if>
+        )
+    </insert>
+
+    <delete id="delete" parameterType="list">
+        delete from tbl_product_classify
+        <where>
+            classify_id in
+            <foreach collection="list" open="(" close=")" separator=","
+                     item="item">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <update id="editCategory" parameterType="categoryDO">
+        UPDATE tbl_product_classify
+        <trim prefix="set" suffixOverrides=",">
+            <if test="classifyNo!=null">
+                classify_no = #{classifyNo},
+            </if>
+            <if test="classifyName!=null">
+                classify_name = #{classifyName},
+            </if>
+            <if test="iconUrl!=null">
+                icon_url = #{iconUrl},
+            </if>
+            <if test="updateUserId!=null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="updateTime!=null">
+                update_time = #{updateTime},
+            </if>
+            <if test="showOrder!=null">
+                show_order = #{showOrder},
+            </if>
+            <if test="pickupOrder != null">
+                pickup_order = #{pickupOrder},
+            </if>
+        </trim>
+        WHERE
+        del_flag=1
+        and
+        classify_id = #{classifyId}
+    </update>
+    <select id="listCategory" resultType="categoryDO">
+        select tpc1.*, tpc2.classify_name as fatherName
+        from
+        tbl_product_classify tpc1
+        left join tbl_product_classify tpc2
+        on tpc1.father_id = tpc2.classify_id
+        <where>
+            tpc1.del_flag = 1
+            <if test="level != null">
+                and tpc1.level = #{level}
+            </if>
+            <if test="fatherId != null">
+                and tpc1.father_id = #{fatherId}
+            </if>
+            <if test="classifyName!=null">
+                and tpc1.classify_name
+                like concat('%',#{classifyName},'%')
+            </if>
+        </where>
+        order by tpc1.show_order
+    </select>
+    <select id="listAllLv1Category" parameterType="categoryDo" resultType="categoryDO">
+        select * from tbl_product_classify
+        where classify_id in(
+                select distinct father_id
+                    from tbl_product_classify
+                where level=2 and del_flag=1)
+        and del_flag=1 and level=1;
+
+    </select>
+
+    <select id="loadCategory" parameterType="Integer" resultType="categoryDO">
+        select
+        child.classify_id,
+        child.classify_no,
+        child.classify_name,
+        child.level,
+        child.father_id,
+        father.classify_name as fatherName,
+        child.icon_url,
+        child.del_flag,
+        child.adjustment_factor,
+        child.create_time,
+        child.create_user_id,
+        child.update_time,
+        child.update_user_id,
+        child.pickup_order,
+        child.show_order
+        from tbl_product_classify child left join
+        tbl_product_classify father on
+        child.father_id = father.classify_id
+        where child.del_flag=1 and child.classify_id =#{categoryId}
+    </select>
+
+    <update id="delByIdList">
+        update tbl_product_classify
+        set del_flag =0
+        where classify_id in
+        <foreach collection="list" item="item" close=")" open="(" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="findByCategoryIdList" resultType="categoryDO">
+        select
+        child.classify_id,
+        child.classify_no,
+        child.classify_name,
+        child.level,
+        child.father_id,
+        father.classify_name as fatherName,
+        child.icon_url,
+        child.del_flag,
+        child.adjustment_factor,
+        child.create_time,
+        child.create_user_id,
+        child.update_time,
+        child.update_user_id,
+        child.pickup_order,
+        child.show_order
+        from tbl_product_classify child left join
+        tbl_product_classify father on
+        child.father_id = father.classify_id
+        where child.del_flag=1 and child.classify_id
+        in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="findByCategoryNoList" resultType="categoryDO">
+        select
+        child.classify_id,
+        child.classify_no,
+        child.classify_name,
+        child.level,
+        child.father_id,
+        father.classify_name as fatherName,
+        child.icon_url,
+        child.del_flag,
+        child.adjustment_factor,
+        child.create_time,
+        child.create_user_id,
+        child.update_time,
+        child.update_user_id,
+        child.pickup_order,
+        child.show_order
+        from tbl_product_classify child left join
+        tbl_product_classify father on
+        child.father_id = father.classify_id
+        where child.del_flag=1 and child.classify_no
+        in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

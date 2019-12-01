@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+ ~
+ ~ @author [ your email ]
+ ~ @date 2019-10-24 14:24:51
+ ~ Created by CodeGen .
+-->
+
+<mapper namespace="CityItem">
+    <resultMap id="CityItemMap" type="CityItem">
+        <id property="id" column="id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="cityId" column="city_id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="sellerName" column="seller_name"/>
+        <result property="name" column="name"/>
+        <result property="status" column="status"/>
+        <result property="version" column="version"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="createdBy" column="created_by"/>
+    </resultMap>
+
+    <sql id="table_name">
+        ic_city_item
+    </sql>
+
+    <sql id="columns_all">
+        id,
+        <include refid="columns_exclude_id"/>
+    </sql>
+
+    <sql id="columns_exclude_id">
+        `item_id`, `city_id`, `category_id`, `seller_id`, `seller_name`, `status`, `version`,`name`,
+        `update_time`, `create_time`, `updated_by`, `created_by`
+    </sql>
+
+    <sql id="values_exclude_id">
+        #{itemId}, #{cityId}, #{categoryId}, #{sellerId}, #{sellerName}, #{status}, 0, #{name},
+        now(), now(), #{updatedBy}, #{updatedBy}
+    </sql>
+
+    <sql id="update_check">
+        AND `version` = #{version}
+        AND `status` != -3
+    </sql>
+
+    <sql id="update_execute">
+        ,`version` = `version` + 1
+        ,`update_time` = now()
+    </sql>
+
+    <sql id="visible">
+        AND `status` != -3
+    </sql>
+
+    <sql id="custom_sort_type">
+        <if test="sortType != null">
+            <if test="sortType == 1">ASC</if>
+            <if test="sortType == 2">DESC</if>
+        </if>
+    </sql>
+
+    <sql id="custom_sort">
+        <if test="sortBy != null">
+            <if test="sortBy == 'id'">ORDER BY `id`
+                <include refid="custom_sort_type"/>
+            </if>
+            <if test="sortBy == 'updateTime'">ORDER BY update_time
+                <include refid="custom_sort_type"/>
+            </if>
+        </if>
+    </sql>
+
+    <sql id="criteria">
+        <where>
+            <if test="itemId != null">AND `item_id` = #{itemId}</if>
+            <if test="itemIds != null and itemIds.size > 0">
+                AND `item_id` in <foreach collection="itemIds" item="i" open="(" separator="," close=")">#{i}</foreach>
+            </if>
+            <if test="cityId != null">AND `city_id` = #{cityId}</if>
+            <if test="categoryId != null">AND `category_id` = #{categoryId}</if>
+            <if test="sellerId != null">AND `seller_id` = #{sellerId}</if>
+            <if test="sellerName != null">AND `seller_name` = #{sellerName}</if>
+            <if test="status != null">AND `status` = #{status}</if>
+            <if test="name != null">AND `name` = #{name}</if>
+            <if test="nameLike != null">AND `name` LIKE CONCAT('%', #{nameLike} ,'%')</if>
+            <if test="version != null">AND `version` = #{version}</if>
+            <if test="updateTime != null">AND `update_time` = #{updateTime}</if>
+            <if test="createTime != null">AND `create_time` = #{createTime}</if>
+            <if test="updatedBy != null">AND `updated_by` = #{updatedBy}</if>
+            <if test="createdBy != null">AND `created_by` = #{createdBy}</if>
+        </where>
+    </sql>
+
+    <insert id="create" parameterType="CityItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        (<include refid="values_exclude_id"/>)
+    </insert>
+
+    <insert id="creates" parameterType="CityItem" useGeneratedKeys="true">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        <foreach collection="list" item="i" index="index" separator=",">
+            (#{i.itemId}, #{i.cityId}, #{i.categoryId}, #{i.sellerId}, #{i.sellerName}, #{i.status},0, #{i.name}, now(), now(), #{i.updatedBy}, #{i.updatedBy})
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="CityItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select id="findByIds" parameterType="list" resultMap="CityItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        <include refid="visible"/>
+    </select>
+
+    <update id="update" parameterType="CityItem">
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            <if test="itemId != null">`item_id` = #{itemId},</if>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="cityId != null">`city_id` = #{cityId},</if>
+            <if test="categoryId != null">`category_id` = #{categoryId},</if>
+            <if test="sellerId != null">`seller_id` = #{sellerId},</if>
+            <if test="sellerName != null">`seller_name` = #{sellerName},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="updatedBy != null">`updated_by` = #{updatedBy},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatusCheckSellerId" parameterType="map">
+        UPDATE
+        <include refid="table_name"/>
+        SET `status` = #{status},
+        updated_by = #{updatedBy}
+        <include refid="update_execute"/>
+        WHERE `id` = #{id}
+        AND `seller_id` = #{sellerId}
+        <include refid="update_check"/>
+    </update>
+
+    <delete id="delete" parameterType="long">
+        DELETE FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </delete>
+
+    <select id="count" parameterType="map" resultType="long">
+        SELECT COUNT(1)
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+    </select>
+
+    <select id="paging" parameterType="map" resultMap="CityItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+        ORDER BY `id` DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="list" parameterType="map" resultMap="CityItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+        ORDER BY `id` DESC
+    </select>
+
+    <select id="findByItemId" parameterType="long" resultMap="CityItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE `item_id` = #{id}
+        <include refid="visible"/>
+    </select>
+
+    <select id="findByItemIdAndCityId" parameterType="map" resultMap="CityItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE `item_id`=#{itemId} AND `city_id`=#{cityId}
+        <include refid="visible"/>
+        limit 1
+    </select>
+</mapper>

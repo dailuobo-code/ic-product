@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SOAHPMapper">
+
+	<sql id="cityProductColumns">
+		${alias}.point_mall_status as pointMallStatus,${alias}.point_price as pointPrice,IFNULL(${alias}.l1_l2_names,'') as l1L2Names,${alias}.city_product_id,${alias}.city_id,${alias}.hq_product_id,${alias}.hq_status,${alias}.city_status,${alias}.show_name,${alias}.disable_price,
+			${alias}.weight_unit,${alias}.num_unit,${alias}.origin,${alias}.advise_price,${alias}.remark,${alias}.city_product_icon,${alias}.city_product_pic,
+			${alias}.detail_url,${alias}.home_flag,${alias}.del_flag,${alias}.create_time,${alias}.update_time,${alias}.subtitle,${alias}.product_no,
+			CONCAT(IFNULL(${alias}.l1_l2_names,''),' ',IFNULL(${alias}.keyword, '')) AS keyword,
+			${alias}.icon_tip,${alias}.delivery_mode,${alias}.is_share,${alias}.new_user_pro,${alias}.goods_type,${alias}.merchant_id
+	</sql>
+
+	<select id="getById" parameterType="int" resultType="com.mallcai.bs.model.StorageBannerPool">
+		SELECT banner_id,city_id,banner_name, banner_type,banner_product_id as city_product_id,
+				banner_url,del_flag,banner_pic,banner_big_pic,
+				status,memo 
+		FROM tbl_banner_pool
+        WHERE banner_id = #{bannerId}
+   </select>
+   
+   	<select id="getCityHPBannerList" parameterType="int" resultType="com.mallcai.bs.model.StorageHPBanner">
+		SELECT city_id,banner_id,banner_order,store_id
+		FROM tbl_banner 
+		WHERE del_flag=1
+		  AND city_id=#{cityId}
+   </select>
+   
+   	<select id="getCityStoreList" parameterType="int" resultType="com.mallcai.backend.common.dao.vo.StorageStore">
+		select
+			b.area_id,
+			b.area_name,
+			a.store_id,
+			a.store_name,
+			a.city_id,
+			a.employee_num,
+			a.address,
+			a.telephone,
+			a.manager,
+			a.status,
+			a.lon,
+			a.lat,
+			a.create_user_id,
+			a.create_time,
+			a.update_user_id,
+			a.update_time,
+			a.shelf_num,
+			a.del_flag,
+			a.store_pic,
+			a.remark,a.warehouse_id,
+			a.store_no,
+			a.show_pic
+		from tbl_store a
+		join tbl_city_area b
+		on a.area_id=b.area_id
+		where a.status=2 
+		  and a.del_flag =1 
+		  AND a.city_id=#{cityId}
+   </select>
+   
+   	<select id="getSpecifyIds" parameterType="string" resultType="com.mallcai.bs.model.StorageBannerPool">
+		SELECT banner_id,city_id,banner_name, banner_type,banner_product_id as city_product_id,
+				banner_url,del_flag,banner_pic,banner_big_pic,
+				status,memo 
+		FROM tbl_banner_pool
+        WHERE banner_id IN (${bannerIds})
+   </select>
+
+
+	<select id="getByBannerId" parameterType="int" resultType="com.mallcai.service.vo.ic.common.StorageBannerProduct">
+		SELECT banner_id,city_product_id,del_flag,banner_product_order
+		FROM tbl_banner_product_list 
+	    WHERE del_flag=1
+        AND banner_id = #{bannerId}
+   </select>
+   
+     <select id="getStoreHeadlineByCityId" resultType="com.dailuobo.api.domain.soa.SOAStoreHeadline">
+ 		SELECT th.city_id,th.create_time,th.del_flag,th.headline_id,th.headline_order,th.id,th.store_id,th.update_time
+		FROM tbl_headline th 
+		WHERE th.city_id = #{cityId}
+		AND th.del_flag = 1
+   </select>
+   
+      <select id="getHeadlineByCityId" resultType="com.dailuobo.api.domain.soa.SOAHeadline">
+   		SELECT
+			thp.headline_id,thp.city_id,thp.headline_name,thp.headline_type,thp.headline_product_id,
+			thp.headline_url,thp.headline_url,thp.memo,thp.`status`,thp.del_flag,thp.create_time,thp.update_time
+		FROM
+			tbl_headline_pool thp
+		WHERE
+			thp.city_id = #{cityId}
+		AND thp.del_flag = 1
+   </select>
+   
+   
+   	<select id="getCityHPProductList" parameterType="int" resultType="com.mallcai.bs.model.StorageHPProduct">
+		SELECT city_id,store_id,city_product_id,product_order,create_time,IF(update_time = '0000-00-00 00:00:00',create_time,update_time) AS update_time,id
+		FROM tbl_hp_product_list where del_flag=1
+		  AND city_id=#{cityId}
+   </select>
+   
+   	<select id="getCityHPTileList" parameterType="int" resultType="com.mallcai.bs.model.StorageHPTile">
+		select city_id,tile_id,tile_order,del_flag,store_id from tbl_tile
+		 WHERE del_flag=1
+		  AND city_id=#{cityId}
+   </select>
+   
+      <select id="getHPBannerProductListAll" resultType="com.mallcai.service.vo.ic.common.StorageBannerProduct">
+   		SELECT
+			tbpl.banner_id,tbpl.city_product_id,tbpl.del_flag,tbpl.banner_product_order,tb.city_id
+		FROM
+			tbl_banner tb
+		JOIN tbl_banner_product_list tbpl ON tb.banner_id = tbpl.banner_id
+		WHERE tb.del_flag = 1 AND tbpl.del_flag = 1
+   </select>
+   
+   	<select id="getCityHPProductListAll" resultType="com.mallcai.bs.model.StorageHPProduct">
+		SELECT city_id,store_id,city_product_id,product_order,create_time,IF(update_time = '0000-00-00 00:00:00',create_time,update_time) AS update_time,id
+		FROM tbl_hp_product_list where del_flag=1
+   </select>
+   
+      <select id="getHeadlineProductListAll" resultType="com.dailuobo.api.domain.soa.SOAHeadlineProduct">
+   		SELECT a.id,a.headline_id,a.city_product_id,a.headline_product_order,a.del_flag,a.create_time,a.update_time
+		FROM tbl_headline_product_list a
+		WHERE a.del_flag = 1
+   </select>
+   
+   
+   	<select id="getProductByCityHqProductId" resultType="com.dailuobo.api.domain.soa.city.CityProductDto" parameterType="int">
+		SELECT
+			<include refid="cityProductColumns">
+				<property name="alias" value="cp"/>
+			</include>, hq.is_standard
+		FROM
+			tbl_city_product cp, tbl_hq_product hq
+		WHERE
+		cp.hq_product_id = #{hqProductId}
+		AND cp.hq_product_id = hq.hq_product_id
+		AND cp.del_flag = 1
+	</select>
+   
+   
+   	<select id="getProductSpecByHqProductId" resultType="com.dailuobo.api.domain.soa.city.SalesSpecDto">
+		SELECT 
+			tss.spec_id,tss.city_product_id,tss.real_price,tss.avg_price,tss.avg_unit,tss.unit_type,
+			tss.spec_name,tss.status,tss.show_flag,tss.standard_flag,tss.del_flag,tss.create_time,
+			tss.update_time,tss.threshold,tss.package_max_weight,tss.change_flag,tss.package_quantity,
+			tss.store_id,tss.city_id,
+			tss.vip_count,
+			CONCAT(tss.avg_price,'/',tss.avg_unit) AS avg_price_detail, 
+			CONCAT(tss.real_price,'元/份') AS real_price_detail,
+			CONCAT('约',tss.package_max_weight,cp.weight_unit) AS weight_detail,
+			CONCAT(tss.package_quantity,cp.num_unit) AS number_detail,
+			IFNULL(CASE WHEN spi.icon_tip = '' THEN null ELSE spi.icon_tip END,cp.icon_tip) AS icon_tip,
+			CONCAT(IFNULL(l1_l2_names,''),IFNULL(cp.keyword,''),IFNULL(spi.keyword,'')) AS keyword,
+			salesAttr.spec_attribute_json  as specAttributeJson
+		FROM tbl_sales_spec tss JOIN tbl_city_product cp ON tss.city_product_id = cp.city_product_id
+			LEFT JOIN tbl_store_product_info spi ON tss.store_id = spi.store_id AND tss.city_product_id = spi.city_product_id
+			left JOIN ic_sales_spec_attribute salesAttr on cp.city_product_id = salesAttr.city_product_id
+		WHERE cp.hq_product_id = #{hqProductId}
+			AND tss.del_flag = 1
+	</select>
+	
+	
+
+   
+     <select id="getHeadlineProductListByCityId" resultType="com.dailuobo.api.domain.soa.SOAHeadlineProduct">
+   		SELECT a.id,a.headline_id,a.city_product_id,a.headline_product_order,a.del_flag,a.create_time,a.update_time
+		FROM tbl_headline_product_list a
+		JOIN tbl_headline th ON a.headline_id = th.headline_id
+		WHERE th.city_id = #{cityId}
+		AND a.del_flag = 1
+		AND th.del_flag = 1
+   </select>
+   
+   	<select id="getHPStyleRel" resultType="com.dailuobo.api.domain.soa.SOAHPStyleRel">
+		SELECT
+			ss.id,ss.city_id,ss.schema_id,ss.store_id
+		FROM
+			tbl_store_schema  ss
+		WHERE
+			ss.city_id = #{cityId}
+		AND ss.store_id = #{storeId}
+	</select>
+	
+		
+	<select id="getHPStyle" resultType="com.dailuobo.api.domain.soa.SOAHPStyle">
+		SELECT 
+			ass.id,ass.name,ass.city_id,ass.top_rgb,ass.tile_bg,ass.menu_bg,ass.btn_home_focus_bg,
+			ass.btn_home_blur_bg,ass.btn_category_focus_bg,ass.btn_category_blur_bg,
+			ass.btn_cart_focus_bg,ass.btn_cart_blur_bg,ass.btn_pickup_focus_bg,
+			ass.btn_pickup_blur_bg,ass.btn_aboutme_focus_bg,ass.btn_aboutme_blur_bg,
+			ass.create_time,ass.update_time,ass.is_default 
+		FROM tbl_app_style_schema ass
+		WHERE 
+			ass.id = #{id}
+	</select>
+
+
+	<select id="getTilePoolById" parameterType="int" resultType="com.mallcai.bs.model.StorageTilePool">
+		select tile_id,city_id,tile_name,tile_type,tile_product_id,tile_url,tile_icon,status,memo,tile_img_url
+		FROM tbl_tile_pool
+        WHERE tile_id = #{tileId}
+   </select>
+   
+      <select id="getHPBannerProductList" resultType="com.mallcai.service.vo.ic.common.StorageBannerProduct">
+   		SELECT
+			tbpl.banner_id,tbpl.city_product_id,tbpl.del_flag,tbpl.banner_product_order
+		FROM
+			tbl_banner tb
+		JOIN tbl_banner_product_list tbpl ON tb.banner_id = tbpl.banner_id
+		WHERE tb.del_flag = 1 AND tbpl.del_flag = 1 AND tb.city_id = #{cityId}
+   </select>
+
+	<select id="getProductTaxByCode" resultType="com.dailuobo.api.domain.entity.HqProductTax">
+		select id, tax_classify_code, tax_rate
+		from tbl_product_tax
+		where tax_classify_code in
+		<foreach collection="codes" item="code" open="(" separator="," close=")">
+			#{code}
+		</foreach>
+	</select>
+
+	<select id="getByProductNos" resultType="com.dailuobo.api.domain.entity.HqProduct">
+		select hq_product_id, product_no
+		from tbl_hq_product
+		where product_no in
+		<foreach collection="productNOs" item="productNO" open="(" separator="," close=")">
+			#{productNO}
+		</foreach>
+	</select>
+
+	<select id="getByHqProductNames" resultType="com.dailuobo.api.domain.entity.HqProduct">
+		select hq_product_id, product_no, hq_product_name
+		from tbl_hq_product
+		where hq_product_name in
+		<foreach collection="hqProductNames" item="hqProductName" open="(" separator="," close=")">
+			#{hqProductName}
+		</foreach>
+	</select>
+
+</mapper>

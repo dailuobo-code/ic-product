@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.UnMarketingMapper">
+    <select id="getStoreMarketingInventories" resultType="com.dailuobo.api.domain.soa.SOAUnStoreMarketingInventory">
+
+        SELECT
+        ss.und_spec_id,
+        t1.city_product_id,
+        t1.product_no,
+        t3.hq_product_name,
+        t1.show_name,
+        t1.is_share,
+        t4.classify_name AS c2Name,
+        t5.classify_name AS c1Name,
+        t1.city_product_icon,
+        t1.disable_price,
+        t2.available,
+        t2.threshold,
+        t2.store_id AS store_id
+        FROM und_sales_spec ss
+        INNER JOIN tbl_city_product t1 ON ss.city_product_id = t1.city_product_id
+        INNER JOIN und_marketing_inventory t2 ON t1.city_product_id = t2.city_product_id
+        and  t2.store_id = #{storeId}
+        <!-- LEFT JOIN und_marketing_inventory_base t6 ON t1.city_product_id = t6.city_product_id AND t6.store_id =
+        #{storeId} -->,
+        tbl_hq_product t3,
+        tbl_product_classify t4,
+        tbl_product_classify t5
+        WHERE t1.hq_product_id = t3.hq_product_id
+        AND t3.classify_id = t4.classify_id
+        AND t4.father_id = t5.classify_id
+        AND t1.city_id = #{cityId}
+  		AND t1.is_under = 1
+  		 <if test="classifyId != null">
+            AND t4.classify_id = #{classifyId}
+        </if>
+        <!-- 2018-10-30 yr放出烟草类库存查询 -->
+        <!-- <![CDATA[and t4.classify_id <> #{smokeClassifyId}]]> -->
+        <if test="parentClassifyId != null">
+            AND t4.classify_id IN (SELECT classify_id FROM
+            tbl_product_classify WHERE father_id = #{parentClassifyId})
+        </if>
+        <if test="isShare != null">
+            AND t1.is_share = #{isShare}
+        </if>
+        <if test="productNo != null">
+            AND t1.product_no LIKE concat('%', #{productNo}, '%')
+        </if>
+        <if test="hqProductName != null">
+            AND t3.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="showName != null">
+            AND t1.show_name LIKE concat('%', #{showName}, '%')
+        </if>
+        <if test="storeId != null">
+            and t2.store_id = #{storeId}
+        </if>
+        GROUP BY t1.city_product_id
+        ORDER BY t1.product_no
+
+</select>
+
+
+<select id="getUnMarketingInventories" resultType="com.dailuobo.api.domain.soa.SOAUnStoreMarketingInventory">
+
+		SELECT
+            t1.store_id,
+            t1.store_name,
+            t2.und_spec_id,
+            #{cityProductId} AS city_product_id,
+            t2.available,
+            t2.threshold<!-- ,
+            t3.available     AS availableBase -->
+        FROM
+            tbl_store t1
+            LEFT JOIN und_marketing_inventory t2 ON t1.store_id = t2.store_id AND t2.city_product_id = #{cityProductId}
+            <!-- LEFT JOIN und_marketing_inventory_base t3
+                ON t1.store_id = t3.store_id AND t3.city_product_id = #{cityProductId} -->
+        WHERE
+            t1.city_id = #{cityId}
+    <if test="storeId != null">
+        and t2.store_id = #{storeId}
+    </if>
+        GROUP BY t1.store_id
+</select>
+    <select id="getUndSalesSpec" resultType="com.dailuobo.api.domain.soa.SOAUnStoreMarketingInventory">
+        SELECT
+            ss.und_spec_id,
+            t1.city_product_id,
+            t1.product_no,
+            t1.show_name,
+            t1.is_share
+        FROM
+            und_sales_spec ss
+        LEFT JOIN tbl_city_product t1 ON ss.city_product_id = t1.city_product_id
+        WHERE t1.is_under = 1
+            and ss.store_id = 0
+            AND ss.city_product_id = #{cityProductId}
+    </select>
+
+    <update id="updateInventory">
+        UPDATE und_sales_spec uss,
+                 und_marketing_inventory umi
+        SET umi.available = umi.available + #{increaseNum}
+        WHERE
+            uss.und_spec_id = umi.und_spec_id
+            AND umi.city_product_id = #{cityProductId}
+            and uss.store_id = #{storeId}
+            AND uss.city_id = #{cityId}
+            AND umi.del_flag = 1
+    </update>
+
+    <update id="updateAvailable">
+        update und_marketing_inventory set update_user_id = #{updateUserId},available = available + #{available}
+        where del_flag = 1
+        and available + #{available} >= 0
+        <if test="undSpecId != null">
+            and und_spec_id = #{undSpecId}
+        </if>
+        <if test="cityProductId != null">
+            and city_product_id = #{cityProductId}
+        </if>
+        <if test="storeId != null">
+            and store_id = #{storeId}
+        </if>
+    </update>
+
+    <update id="replaceAvailable">
+        update und_marketing_inventory set update_user_id = #{updateUserId},available = #{available}
+        where del_flag = 1
+        <if test="cityProductId != null">
+            and city_product_id = #{cityProductId}
+        </if>
+        <if test="storeId != null">
+            and store_id = #{storeId}
+        </if>
+    </update>
+
+    <insert id="insertUnMarketingInventory">
+        INSERT INTO und_marketing_inventory (und_spec_id,city_product_id, store_id, available, create_user_id,create_time)
+        VALUE (#{undSpecId},#{cityProductId}, #{storeId}, #{available}, #{createUserId},now())
+    </insert>
+
+    <select id="countUnMarketingInventory" resultType="java.lang.Integer">
+        select count(1) from und_marketing_inventory
+        where del_flag = 1
+        <if test="undSpecId != null">
+            and und_spec_id = #{undSpecId}
+        </if>
+        <if test="cityProductId != null">
+            and city_product_id = #{cityProductId}
+        </if>
+        <if test="storeId != null">
+            and store_id = #{storeId}
+        </if>
+    </select>
+    <select id="getCityProductTotalAvailable" resultType="map">
+        SELECT
+        t2.city_product_id productId,
+        SUM(t2.available) totalAvailable
+        FROM
+        tbl_store t1
+        LEFT JOIN und_marketing_inventory t2 ON t1.store_id = t2.store_id
+        AND t2.city_product_id IN
+        <foreach collection="cityProductIdList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        WHERE
+        t1.city_id IN
+        <foreach collection="cityIdList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+
+        and t2.city_product_id is not null
+        GROUP BY
+        t2.city_product_id
+    </select>
+    <select id="countAvailableInventory" resultType="java.lang.Integer">
+        select count(1) from und_marketing_inventory
+        where del_flag = 1
+        <if test="available != null">
+            and available >= #{available}
+        </if>
+        <if test="cityProductId != null">
+            and city_product_id = #{cityProductId}
+        </if>
+        <if test="storeId != null">
+            and store_id = #{storeId}
+        </if>
+    </select>
+
+</mapper>

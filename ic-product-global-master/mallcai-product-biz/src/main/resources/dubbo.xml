@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd
+		http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+    <!--<context:component-scan base-package="com.mallcai.router.server"/>-->
+    <!--base config-->
+    <dubbo:application name="ic-product-global"/>
+
+    <dubbo:protocol name="dubbo" port="20990" threadpool="fixed" threads="200"/>
+
+    <dubbo:registry id="city" address="${dubbo.city.registry.address}" protocol="zookeeper" default="true"/>
+
+    <dubbo:registry id="global" address="${dubbo.global.registry.address}" protocol="zookeeper" default="false"/>
+
+    <!--provider-->
+    <dubbo:service interface="com.mallcai.api.product.backend.MgrProductService" ref="mgrProductService" registry="city"
+                   timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.api.product.front.FrontProductService" ref="frontProductService"
+                   registry="city" timeout="30000"/>
+
+
+    <dubbo:service interface="com.mallcai.api.category.CategoryService" ref="categoryService" registry="city"
+                   timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.api.inventory.IWarehouseStoreService" ref="warehouseStoreService"
+                   registry="city" timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.api.product.backend.MgrProductTopicReadService"
+                   ref="mgrProductTopicReadServiceImpl" registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.MgrProductTopicWriteService"
+                   ref="mgrProductTopicWriteServiceImpl" registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.PartnerProductService" ref="partnerProductService"
+                   registry="city" timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.api.category.front.MgrFrontCategoryService" ref="mgrFrontCategoryServiceImpl"
+                   registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.api.category.front.MgrFrontCategoryAssociatedService"
+                   ref="mgrFrontCategoryAssociatedServiceImpl" registry="city" timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.api.product.backend.GlobalProductService" ref="globalProductServiceImpl"
+                   registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.GlobalProductService" ref="globalProductServiceImpl"
+                   registry="global" timeout="30000"/>
+
+
+    <dubbo:service interface="com.mallcai.api.product.backend.ItemWriteFacade" ref="mgrItemWriteFacade" registry="city"
+                   timeout="3000"/>
+
+    <dubbo:service interface="com.mallcai.api.category.AttributeBaseReadFacade" ref="mgrAttributeBaseReadService"
+                   registry="city" timeout="3000"/>
+
+    <dubbo:service interface="com.mallcai.api.product.backend.ProductPushService" registry="city"
+                   ref="productPushService"/>
+
+
+    <dubbo:service interface="com.mallcai.api.product.backend.GlobalProductService" ref="globalProductServiceImpl"
+                   registry="global" timeout="3000"/>
+
+    <dubbo:service interface="com.mallcai.api.product.backend.GlobalProductService" ref="globalProductServiceImpl"
+                   registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.GlobalProductService" ref="globalProductServiceImpl"
+                   registry="global" timeout="30000"/>
+
+    <!--网关服务注册的地址，暂时注册在global上，后面可能进行修改, 如果某中台的网关注册在其他的注册中心上，请修改响应配置，注册中心可配置多个-->
+    <!--<dubbo:registry id="gateway" protocol="zookeeper" address="10.111.27.15:2560"/>-->
+    <!--网关暴露的dubbo服务，请写上对应的注册中心，group请联系提供服务的中台，id的命名必须为group + RouterService。若某个服务需要依赖多个中台的网关，此项配置会有多个，只需要注意id和group即可-->
+    <!--<dubbo:reference registry="gateway" timeout="5000" id="itemCenterRouterService" interface="com.mallcai.router.api.RouterService" group="itemCenter" url="dubbo://localhost:21000"/>-->
+    <bean id="routerThreadPool" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="30"/>
+        <property name="maxPoolSize" value="100"/>
+        <property name="queueCapacity" value="50"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="true"/>
+        <property name="awaitTerminationSeconds" value="500"/>
+        <property name="keepAliveSeconds" value="300"/>
+        <property name="rejectedExecutionHandler">
+            <bean class="java.util.concurrent.ThreadPoolExecutor$AbortPolicy"/>
+        </property>
+    </bean>
+
+
+    <!--商品中心服务-->
+    <dubbo:service interface="com.mallcai.api.product.backend.ItemWriteFacade" ref="mgrItemWriteFacade"
+                   registry="city"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.ItemReadFacade" ref="mgrItemReadFacade"
+                   registry="city"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.CityItemReadFacade" ref="mgrCityItemReadService"
+                   registry="city"/>
+    <dubbo:service interface="com.mallcai.api.product.backend.CityItemWriteFacade" ref="mgrCityItemWriteService"
+                   registry="city"/>
+    <dubbo:service interface="com.mallcai.api.category.AttributeBaseReadFacade" ref="mgrAttributeBaseReadService"
+                   registry="city"/>
+    <dubbo:service interface="com.mallcai.api.category.BackCategoryReadFacade" ref="mgrBackCategoryReadService"
+                   registry="city"/>
+
+
+    <dubbo:reference registry="global" timeout="5000" id="itemCenterRouterService"
+                     interface="com.mallcai.router.api.RouterService" group="itemCenter" check="false"/>
+
+
+    <dubbo:reference interface="com.mallcai.itemcenter.item.api.facade.ItemWriteFacade" id="itemWriteFacade"
+                     registry="city" check="false" timeout="10000"/>
+    <dubbo:reference interface="com.mallcai.itemcenter.item.api.facade.ItemReadFacade" id="itemReadFacade"
+                     registry="city" check="false" timeout="10000"/>
+    <dubbo:reference interface="com.mallcai.itemcenter.item.api.facade.CityItemReadFacade" id="cityItemReadFacade"
+                     registry="city" check="false" timeout="10000"/>
+    <dubbo:reference interface="com.mallcai.itemcenter.item.api.facade.CityItemWriteFacade" id="cityItemWriteFacade"
+                     registry="city" check="false" timeout="10000"/>
+    <dubbo:reference interface="com.mallcai.itemcenter.category.api.facade.AttributeBaseReadFacade"
+                     id="attributeBaseReadFacade"
+                     registry="city" check="false" timeout="10000"/>
+
+    <dubbo:reference interface="com.mallcai.itemcenter.category.api.facade.BackCategoryReadFacade"
+                     id="backCategoryReadFacade"
+                     registry="city" check="false" timeout="10000"/>
+
+</beans>

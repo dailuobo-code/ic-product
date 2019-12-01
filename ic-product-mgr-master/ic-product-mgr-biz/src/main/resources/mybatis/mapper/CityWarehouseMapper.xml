@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.CityWarehouseMapper">
+    <select id="getDDLWarehouses" resultType="DDLWarehouse">
+        SELECT
+            t.id   AS warehouseId,
+            t.name AS warehouseName
+        FROM erp_warehouse t
+        WHERE t.city_id = ${cityId} and t.type = 2
+    </select>
+
+    <select id="getDDLWarehousesByType" resultType="DDLWarehouse">
+        SELECT
+            t.id   AS warehouseId,
+            t.name AS warehouseName
+        FROM erp_warehouse t
+        WHERE t.city_id = ${cityId} and t.type = #{type}
+    </select>
+
+    <select id="getDDLWarehousesByIds" resultType="DDLWarehouse">
+        SELECT
+            t.id   AS warehouseId,
+            t.name AS warehouseName
+        FROM erp_warehouse t
+        WHERE id in
+        <foreach collection="ids" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getDDLWarehouseByStoreId" resultType="DDLWarehouse">
+        SELECT
+            t.id   AS warehouseId,
+            t.name AS warehouseName,
+            t1.store_id
+        FROM erp_warehouse t
+        inner join erp_warehouse_store t1 on t.id = t1.warehouse_id
+        WHERE t1.store_id = ${storeId} and t.type = 2 limit 1
+    </select>
+
+    <select id="getDDLWarehouseByStoreIdList" resultType="DDLWarehouse">
+        SELECT
+        t.id   AS warehouseId,
+        t.name AS warehouseName,
+        t1.store_id
+        FROM erp_warehouse t
+        inner join erp_warehouse_store t1 on t.id = t1.warehouse_id
+        WHERE t.type = #{type} and t1.store_id in
+        <foreach collection="storeIds" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getWareHouse" resultType="com.dailuobo.api.domain.vo.DDLWarehouse">
+        select id as warehouseId, city_id  as cityId, type, status, name as warehouseName
+        from  erp_warehouse
+        <where>
+            1 = 1
+            <if test="cityIds != null">
+              and  city_id in
+                <foreach collection="cityIds" item="cityId" separator="," open="(" close=")">
+                    #{cityId}
+                </foreach>
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="name != null">
+                and name like CONCAT('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

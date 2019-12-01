@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MarketingInventoryMapper2">
+
+    <select id="getWhMarketingInventories" parameterType="map" resultType="WhMarketingInventory">
+        SELECT
+        t1.city_product_id,
+        t1.product_no,
+        t3.hq_product_name,
+        t1.show_name,
+        t4.classify_name AS c2Name,
+        t5.classify_name AS c1Name,
+        t1.city_product_icon,
+        t1.disable_price,
+        t2.available,
+        t2.threshold,
+        #{warehouseId} AS warehouse_id,
+        t6.available AS availableBase
+        FROM tbl_city_product t1
+        LEFT JOIN tbl_marketing_inventory t2 ON t1.city_product_id = t2.city_product_id AND t2.store_id = #{warehouseId}
+        LEFT JOIN tbl_marketing_inventory_base t6 ON t6.city_product_id = t1.city_product_id AND t6.store_id =
+        #{warehouseId},
+        tbl_hq_product t3,
+        tbl_product_classify t4,
+        tbl_product_classify t5
+        WHERE t1.hq_product_id = t3.hq_product_id
+        AND t3.classify_id = t4.classify_id
+        AND t4.father_id = t5.classify_id
+        AND t1.city_id = #{cityId}
+        AND t1.city_status = 1
+        AND t1.hq_status = 1
+        AND t1.delivery_mode = 2
+        <if test="classifyId != null">
+            AND t4.classify_id = #{classifyId}
+        </if>
+        <if test="parentClassifyId != null">
+            AND t4.classify_id IN (SELECT classify_id FROM
+            tbl_product_classify WHERE father_id = #{parentClassifyId})
+        </if>
+        <if test="productNo != null">
+            AND t1.product_no LIKE concat('%', #{productNo}, '%')
+        </if>
+        <if test="hqProductName != null">
+            AND t3.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="showName != null">
+            AND t1.show_name LIKE concat('%', #{showName}, '%')
+        </if>
+        GROUP BY t1.city_product_id
+        ORDER BY t1.product_no
+    </select>
+
+    <select id="getMarketingInventories" resultType="MarketingInventory2">
+        SELECT
+            t1.id            AS warehouseId,
+            t1.name          AS warehouseName,
+            #{cityProductId} AS cityProductId,
+            t2.available,
+            t2.threshold,
+            t3.available     AS availableBase
+        FROM
+            erp_warehouse t1
+            LEFT JOIN tbl_marketing_inventory t2
+                ON t1.id = t2.store_id AND t2.city_product_id = #{cityProductId}
+            LEFT JOIN tbl_marketing_inventory_base t3
+                ON t1.id = t3.store_id AND t3.city_product_id = #{cityProductId}
+        WHERE
+            t1.city_id = #{cityId} and t1.type = 2
+        GROUP BY t1.id
+    </select>
+
+    <update id="checkAndSetStock">
+        update tbl_marketing_inventory
+        set available = #{afterAvailable},
+        version = version + 1
+        where store_id = #{storeId}
+        and city_product_id = #{cityProductId}
+        and available >= #{afterAvailable}
+        and version = #{version}
+    </update>
+
+    <update id="updateBaseInventory">
+        update tbl_marketing_inventory_base
+        set available =available - #{delta}
+        where store_id = #{storeId} and city_product_id = #{cityProductId}
+    </update>
+    <update id="updateTblMarketingInventoryByPrimaryKey" parameterType="com.mallcai.bs.model.ivy.MarketingInventoryDO">
+        update tbl_marketing_inventory
+        <set>
+            <if test="threshold != null">
+                threshold = #{threshold},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <insert id="batchWriteStock" parameterType="list">
+        <foreach collection="list" item="item">
+            INSERT INTO tbl_marketing_inventory ( store_id,city_product_id,warehouse_id, available
+            <if test="item.threshold != null">
+                , threshold
+            </if>
+            )
+            VALUE (#{item.storeId}, #{item.cityProductId},#{item.warehouseId} ,#{item.available}
+            <if test="item.threshold != null">
+                ,#{item.threshold}
+            </if>
+            )
+            ON DUPLICATE KEY UPDATE
+            available =#{item.available}
+            <if test="item.threshold != null">
+                ,threshold = #{item.threshold}
+            </if>
+            ;
+
+        </foreach>
+
+        <foreach collection="list" item="item">
+            INSERT INTO tbl_marketing_inventory_base ( store_id,city_product_id,warehouse_id, available
+            <if test="item.threshold != null">
+                ,threshold
+            </if>
+            )
+            VALUE (#{item.storeId}, #{item.cityProductId},#{item.warehouseId} ,#{item.available}
+            <if test="item.threshold != null">
+                ,#{item.threshold}
+            </if>
+            )
+            ON DUPLICATE KEY UPDATE
+            available =#{item.available}
+            <if test="item.threshold != null">
+                ,threshold = #{item.threshold}
+            </if>
+            ;
+        </foreach>
+    </insert>
+
+    <select id="list" resultType="com.mallcai.bs.model.ivy.MarketingInventoryDO">
+        select city_product_id as cityProductId,available,warehouse_id as warehouseId
+        from tbl_marketing_inventory
+        <where>
+
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+
+            <if test="cityProductIds !=null and cityProductIds.size() >0">
+                and city_product_id in
+                <foreach collection="cityProductIds" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="delFlag !=null">
+                and del_flag=1
+            </if>
+        </where>
+    </select>
+
+    <select id="listAll" resultType="com.mallcai.bs.model.ivy.MarketingInventoryDO"
+      parameterType="com.mallcai.bs.model.ivy.IvyMarketingStockPageQueryDO">
+        select id,city_product_id as cityProductId,available,warehouse_id as warehouseId, store_id,threshold
+        from tbl_marketing_inventory
+        <where>
+            1=1
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+            <if test="warehouseId != null">
+                and warehouse_id = #{warehouseId}
+            </if>
+            <if test="cityProductIdList != null and cityProductIdList.size > 0">
+                and city_product_id in
+                <foreach collection="cityProductIdList" item="cityProductId" open="(" separator="," close=")">
+                    #{cityProductId}
+                </foreach>
+            </if>
+        </where>
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countInventoryByCityIdAndClassifyId" resultType="int">
+        select count(tmi.id)
+        from `tbl_city` as tc, `tbl_city_product` as tcp, `tbl_marketing_inventory` as tmi, `tbl_hq_product` as thp
+        where tc.`city_id` in
+        <foreach collection="cityIds" item="cityId" separator="," open="(" close=")">
+            #{cityId}
+        </foreach>
+        and tc.`city_id` = tcp.`city_id`
+        and tcp.`city_product_id` = tmi.`city_product_id`
+        and tcp.`hq_product_id` = thp.`hq_product_id`
+        and thp.`classify_id` in
+        <foreach collection="classifyIds" item="classifyId" separator="," open="(" close=")">
+            #{classifyId}
+        </foreach>
+    </select>
+
+    <select id="selectInventoryByCityIdAndClassifyId"
+            resultType="com.mallcai.bs.model.ExportInventoryLine">
+        select tmi.id, tc.`city_name`, tcp.city_product_id, tcp.`product_no`, tcp.`show_name`, tcp.`is_share`,
+        tmi.`available`, tmi.`threshold`, tmi.`warehouse_id`, tmi.`store_id`, tmib.`available` as availableBase,
+        thp.`classify_id`, thp.`hq_product_name`
+        from `tbl_city` as tc, `tbl_city_product` as tcp, `tbl_marketing_inventory` as tmi,
+        `tbl_marketing_inventory_base` as tmib, `tbl_hq_product` as thp
+        where tc.`city_id` in
+        <foreach collection="cityIds" item="cityId" separator="," open="(" close=")">
+            #{cityId}
+        </foreach>
+        and tc.`city_id` = tcp.`city_id`
+        and tcp.`city_product_id` = tmi.`city_product_id`
+        and tmi.`store_id` = tmib.`store_id`
+        and tmi.`city_product_id` = tmib.`city_product_id`
+        and tmi.`warehouse_id` = tmib.`warehouse_id`
+        and tcp.`hq_product_id` = thp.`hq_product_id`
+        and thp.`classify_id` in
+        <foreach collection="classifyIds" item="classifyId" separator="," open="(" close=")">
+            #{classifyId}
+        </foreach>
+        limit #{start}, #{size}
+    </select>
+
+    <select id="listMarketingBaseDO"
+            resultType="com.mallcai.bs.model.ivy.MarketingInventoryBaseDO">
+        select id,city_product_id as cityProductId,available,sync_complete_time as syncCompleteTime
+        from tbl_marketing_inventory_base
+        <where>
+            <if test="cityProductIds !=null and cityProductIds.size() >0">
+                and city_product_id in
+                <foreach collection="cityProductIds" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="storeId!=null">
+                and store_id = #{storeId}
+            </if>
+
+        </where>
+
+    </select>
+    <select id="countAll" resultType="java.lang.Integer" parameterType="com.mallcai.bs.model.ivy.IvyMarketingStockPageQueryDO">
+        select count(1)
+        from tbl_marketing_inventory
+        <where> 1=1
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+            <if test="warehouseId != null">
+                and warehouse_id = #{warehouseId}
+            </if>
+            <if test="cityProductIdList != null and cityProductIdList.size > 0">
+                and city_product_id in
+                <foreach collection="cityProductIdList" item="cityProductId" open="(" separator="," close=")">
+                    #{cityProductId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

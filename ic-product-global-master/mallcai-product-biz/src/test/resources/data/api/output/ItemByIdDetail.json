@@ -1,0 +1,153 @@
+{
+  "itemInfo": {
+    "extra": {
+      "key": "value",
+      "categoryList": "[1,2,3]"
+    },
+    "id": 1,
+    "spuId": 0,
+    "itemCode": "code",
+    "name": "name",
+    "advertise": "adv",
+    "type": "COMMON",
+    "storeType": "NORMAL",
+    "pickType": "NORMAL",
+    "sellerId": 1,
+    "sellerName": "seller",
+    "categoryId": 3,
+    "serviceFeeTempId": 0,
+    "mainImage": "//example.com/cover.jpg",
+    "videoUrl": "//example.com/cover.mp4",
+    "lowPrice": 100,
+    "highPrice": 110,
+    "skuAttributes": [{
+      "attrKey": "颜色",
+      "skuAttributes": [{
+        "attrKey": "颜色",
+        "attrVal": "红色"
+      }, {
+        "attrKey": "颜色",
+        "attrVal": "绿色"
+      }]
+    }, {
+      "attrKey": "内存",
+      "skuAttributes": [{
+        "attrKey": "内存",
+        "attrVal": "64G"
+      }, {
+        "attrKey": "内存",
+        "attrVal": "128G"
+      }]
+    }],
+    "otherAttributes": [{
+      "group": "NORMAL",
+      "otherAttributes": [{
+        "attrKey": "产地",
+        "attrVal": "中国",
+        "group": "NORMAL",
+        "readOnlyBySeller": true
+      }]
+    }],
+    "hashCode": "b1135fe01c2b73b987fd2a4679595172",
+    "status": -1,
+    "version": 0,
+    "updatedBy": "1"
+  },
+  "skuInfoList": [{
+    "id": 1,
+    "skuCode": "s1c",
+    "barcode": "s1b",
+    "sellerId": 1,
+    "itemId": 1,
+    "name": "name",
+    "type": 1,
+    "image": "//example.com/cover.jpg",
+    "price": 100,
+    "attributes": [{
+      "attrKey": "颜色",
+      "attrVal": "红色"
+    }, {
+      "attrKey": "内存",
+      "attrVal": "64G"
+    }],
+    "status": -1,
+    "skuTemplateId": 0,
+    "version": 1,
+    "updatedBy": "1"
+  }, {
+    "id": 2,
+    "skuCode": "s2c",
+    "barcode": "s2b",
+    "sellerId": 1,
+    "itemId": 1,
+    "name": "name",
+    "type": 1,
+    "image": "//example.com/cover.jpg",
+    "price": 110,
+    "attributes": [{
+      "attrKey": "颜色",
+      "attrVal": "红色"
+    }, {
+      "attrKey": "内存",
+      "attrVal": "128G"
+    }],
+    "status": -1,
+    "skuTemplateId": 0,
+    "version": 1,
+    "updatedBy": "1"
+  }, {
+    "id": 3,
+    "skuCode": "s3c",
+    "barcode": "s3b",
+    "sellerId": 1,
+    "itemId": 1,
+    "name": "name",
+    "type": 1,
+    "image": "//example.com/cover.jpg",
+    "price": 100,
+    "attributes": [{
+      "attrKey": "颜色",
+      "attrVal": "绿色"
+    }, {
+      "attrKey": "内存",
+      "attrVal": "64G"
+    }],
+    "status": -1,
+    "skuTemplateId": 0,
+    "version": 1,
+    "updatedBy": "1"
+  }, {
+    "id": 4,
+    "skuCode": "s4c",
+    "barcode": "s4b",
+    "sellerId": 1,
+    "itemId": 1,
+    "name": "name",
+    "type": 1,
+    "image": "//example.com/cover.jpg",
+    "price": 110,
+    "attributes": [{
+      "attrKey": "颜色",
+      "attrVal": "绿色"
+    }, {
+      "attrKey": "内存",
+      "attrVal": "128G"
+    }],
+    "status": -1,
+    "skuTemplateId": 0,
+    "version": 1,
+    "updatedBy": "1"
+  }],
+  "itemDetailInfo": {
+    "id": 1,
+    "itemId": 1,
+    "images": [{
+      "name": "img",
+      "url": "//example.com/cover.jpg"
+    }],
+    "detail": [{
+      "title": "default",
+      "content": "description"
+    }]
+  }
+}

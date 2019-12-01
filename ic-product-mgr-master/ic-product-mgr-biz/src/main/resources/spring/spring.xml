@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:property-placeholder
+            location="${configPath.path}jdbc.properties,${configPath.path}zk.properties,${configPath.path}rocketmq.properties,${configPath.path}oss.properties,${configPath.path}ftp.properties,${configPath.path}receivers.properties"
+            ignore-unresolvable="true"/>
+
+    <!-- 配置切面 -->
+    <bean id="dataSourceAspect" class="com.mallcai.bs.interceptor.DataSourceAspect"/>
+
+    <!-- AOP动态切换数据源 -->
+    <aop:config>
+        <aop:aspect ref="dataSourceAspect" order="1">
+            <!-- 拦截对应的业务方法 -->
+            <aop:pointcut id="dataSourcePointcut" expression="(execution(* com.mallcai.bs.mapper.*.*(..)) or execution(* com.mallcai.bs.mgrmapper.*.*(..)))"/>
+            <!-- 通过AOP对注解进行验证 -->
+            <aop:before pointcut-ref="dataSourcePointcut" method="intercept"/>
+        </aop:aspect>
+    </aop:config>
+
+    <aop:aspectj-autoproxy/>
+    <tx:annotation-driven/>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <!--事务模板 -->
+    <bean id="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"/>
+        <!--ISOLATION_DEFAULT 表示由使用的数据库决定  -->
+        <property name="isolationLevelName" value="ISOLATION_DEFAULT"/>
+        <property name="propagationBehaviorName" value="PROPAGATION_REQUIRED"/>
+        <!-- <property name="timeout" value="30"/> -->
+    </bean>
+</beans>

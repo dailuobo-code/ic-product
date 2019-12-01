@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SysParamMapper">
+
+<select id="selectAll" resultType="SysParam">
+	SELECT * FROM tbl_sys_param
+	<where>
+	<if test="type !=null">
+	AND type = #{type}
+	</if>
+	</where>
+</select>
+    <select id="getGroupUserIsAduit" resultType="java.lang.String">
+        select param_val from tbl_sys_param where param_type = #{paramType} limit 1
+    </select>
+    <update id="edit">
+  UPDATE  tbl_sys_param
+  SET update_user = #{updateUser},update_time = now()
+        
+        <if test="paramType != null">
+            , param_type = #{paramType}
+        </if>
+        <if test="paramVal != null">
+            , param_val = #{paramVal}
+        </if>
+        <if test="remark != null">
+            , remark = #{remark}
+        </if>
+         
+        WHERE
+        id = #{id}
+</update>
+
+<insert id="add">
+	INSERT INTO tbl_sys_param
+	<trim prefix="(" suffix=")" suffixOverrides=",">
+       		param_type,param_val,remark,create_time,create_user,
+            <if test="type != null">
+                type
+            </if>
+           
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{paramType},#{paramVal},#{remark},now(),#{createUser},
+            <if test="type != null">
+                #{type}
+            </if>
+            
+        </trim>
+</insert>
+</mapper>

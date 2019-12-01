@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mallcai.biz.product.dao.mapper.TblProductTaxMapper">
+
+  <select id="getProductTaxesByIds" resultType="com.mallcai.biz.product.model.HqProductTax">
+    select id, tax_classify_code, tax_rate
+    from tbl_product_tax
+    where id in
+    <foreach collection="ids" item="id" separator="," open="(" close=")">
+      #{id}
+    </foreach>
+  </select>
+
+
+  <select id="getProductTaxesByClassifyCode"  resultType="com.mallcai.biz.product.model.HqProductTax">
+    select id, tax_classify_code, tax_rate
+    from tbl_product_tax
+    where tax_classify_code in
+    <foreach collection="codes" item="code" separator="," open="(" close=")">
+      #{code}
+    </foreach>
+  </select>
+
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.ivy.IvySkuInventoryWhiteMapper">
+
+
+    <sql id="Base_Column_List">
+        id, warehouse_id, city_product_id,
+        creator, updator, create_time, update_time
+    </sql>
+
+    <select id="getWarehouseSkuWhite" resultType="com.mallcai.bs.model.ivy.IvySkuInventoryWhiteDO">
+        SELECT
+        <include refid="Base_Column_List"></include>
+         from ivy_sku_inventory_white
+        where is_deleted = 0
+
+        <if test="list != null">
+            and (
+            <foreach collection="list" item="item" open="(" close=")" separator=") or (">
+                <if test="item.warehouseId != null">
+                     warehouse_id = #{item.warehouseId}
+                </if>
+                <if test="item.cityProductId != null">
+                    and city_product_id = #{item.cityProductId}
+                </if>
+            </foreach>
+            )
+        </if>
+
+    </select>
+
+    <insert id="addWarehouseSkuWhite" parameterType="list">
+        <foreach collection="list" item="item">
+           INSERT INTO ivy_sku_inventory_white (warehouse_id,city_product_id,creator,updator)
+          VALUES (#{item.warehouseId}, #{item.cityProductId}, #{item.creator}, #{item.updator});
+        </foreach>
+    </insert>
+
+    <update id="updateWarehouseSkuWhite">
+        UPDATE ivy_sku_inventory_white
+        <set>
+            <if test="warehouseId != null">
+                warehouse_id = #{warehouseId},
+            </if>
+            <if test="cityProductId != null">
+                city_product_id = #{cityProductId},
+            </if>
+            <if test="updator != null">
+                updator = #{updator}
+            </if>
+        </set>
+        where id = #{id}
+
+    </update>
+
+    <update id="delWarehouseSkuWhite" >
+        UPDATE ivy_sku_inventory_white
+        set is_deleted = 1
+        where id in
+        <if test="list != null">
+            <foreach collection="list" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </update>
+
+
+
+
+</mapper>

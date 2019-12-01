@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <!--<appender name="APP_FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <file>${LOG_PATH}app-product-service.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}app-product-service.log.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>${LOG_FILE_MAX_SIZE:-10MB}</maxFileSize>
+            <maxHistory>${LOG_FILE_MAX_HISTORY:-0}</maxHistory>
+        </rollingPolicy>
+    </appender>-->
+
+    <appender name="LogPlatformAppender" class="com.mallcai.framework.logback.appender.LogPlatformAppender">
+        <applicationName>ic-product-global</applicationName>
+    </appender>
+
+    <springProfile name="!product_vpc &amp; !beta">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="LogPlatformAppender"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="product_vpc | beta">
+        <root level="INFO">
+            <appender-ref ref="LogPlatformAppender"/>
+        </root>
+    </springProfile>
+
+</configuration>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SOAMarketingInventoryMapper">
+        <update id="setMarketingInventoryV2">
+        INSERT INTO tbl_marketing_inventory (city_product_id, store_id, available, threshold,create_user_id,warehouse_id)
+        VALUE (#{cityProductId}, #{storeId}, #{delta}, #{threshold},#{updateUserId},-1)
+        ON DUPLICATE KEY UPDATE
+        
+        <if test="updateUserId != null">
+            update_user_id = #{updateUserId},
+        </if>
+        <if test="source == 1">
+            available = available + #{delta},
+            threshold = #{threshold};
+        </if>
+        <if test="source == 2">
+            available = available + #{delta};
+        </if>
+
+        INSERT INTO tbl_marketing_inventory_base (city_product_id, store_id, available, threshold,warehouse_id)
+        VALUE (#{cityProductId}, #{storeId}, #{delta}, #{threshold},-1)
+        ON DUPLICATE KEY UPDATE
+        <if test="source == 1">
+            available = available + #{delta},
+            threshold = #{threshold};
+        </if>
+        <if test="source == 2">
+            available = available + #{delta};
+        </if>
+    </update>
+    
+    <select id="getMarketingInventory" resultType="com.dailuobo.api.domain.soa.inventory.MarketingInventoryVo">
+        SELECT
+            t1.id,
+            t1.city_product_id,
+            t1.store_id,
+            t1.available,
+            t1.threshold,
+            t2.show_name,
+            t2.product_no,
+            t2.delivery_mode,
+            CASE t2.delivery_mode
+            WHEN 1
+                THEN t3.store_name
+            WHEN 2
+                THEN t5.name
+            END AS storeName,
+            t4.city_id,
+            t4.city_name
+        FROM tbl_marketing_inventory t1
+            LEFT JOIN tbl_store t3 ON t1.store_id = t3.store_id
+            LEFT JOIN erp_warehouse t5 ON t1.store_id = t5.id
+            ,
+            tbl_city_product t2,
+            tbl_city t4
+        WHERE t1.city_product_id = #{cityProductId}
+              AND t1.store_id = #{storeId}
+              AND t1.city_product_id = t2.city_product_id
+              AND t2.city_id = t4.city_id
+    </select>
+    
+    <select id="getAlarmUser" resultType="com.dailuobo.api.domain.soa.inventory.MarketingInventoryVo">
+        SELECT
+        	GROUP_CONCAT(t2.`phone`) phone_str,GROUP_CONCAT(t2.`email`) email_str
+		FROM 
+			tbl_alarm_product t1,tbl_alarm_user t2 
+		WHERE 
+			t1.alarm_user_id  =  t2.`id` AND
+			t1.city_id = #{cityId} AND
+       		t1.city_product_id =  #{cityProductId}
+    </select>
+    
+    
+        <update id="setMarketingInventoryShare">
+        INSERT INTO tbl_marketing_inventory (city_product_id, store_id, available, threshold,create_user_id,warehouse_id)
+        VALUE (#{cityProductId}, 0, #{delta}, #{threshold},#{updateUserId},-1)
+        ON DUPLICATE KEY UPDATE
+        <if test="updateUserId != null">
+            update_user_id = #{updateUserId},
+        </if>
+        <if test="type == 0">
+            available = 0,
+            threshold = 0;
+        </if>
+        <if test="type == 1">
+            available = available+#{delta},
+            threshold = #{threshold};
+        </if>
+
+        INSERT INTO tbl_marketing_inventory_base (city_product_id, store_id, available, threshold,warehouse_id)
+        VALUE (#{cityProductId}, 0, #{delta}, #{threshold},-1)
+        ON DUPLICATE KEY UPDATE
+        <if test="type == 0">
+            available = 0,
+            threshold = 0;
+        </if>
+         <if test="type == 1">
+            available = available+#{delta},
+            threshold = #{threshold};
+        </if>
+        
+            update  tbl_marketing_inventory set available=0,threshold=0 where city_product_id=#{cityProductId} and store_id>0;
+            update  tbl_marketing_inventory_base set available=0,threshold=0 where city_product_id=#{cityProductId} and store_id>0;
+        
+    </update>
+
+
+    <update id="setMarketingInventoryShareWarehouse">
+        INSERT INTO tbl_marketing_inventory (city_product_id, store_id, available, threshold,create_user_id,warehouse_id)
+        VALUE (#{cityProductId}, 0, #{delta}, #{threshold},#{updateUserId},#{warehouseId})
+        ON DUPLICATE KEY UPDATE
+        <if test="updateUserId != null">
+            update_user_id = #{updateUserId},
+        </if>
+        <if test="isShare == 0">
+            available = 0,
+            threshold = 0;
+        </if>
+        <if test="isShare == 1">
+            available = available+#{delta},
+            threshold = #{threshold};
+        </if>
+
+        INSERT INTO tbl_marketing_inventory_base (city_product_id, store_id, available, threshold,warehouse_id)
+        VALUE (#{cityProductId}, 0, #{delta}, #{threshold},#{warehouseId})
+        ON DUPLICATE KEY UPDATE
+        <if test="isShare == 0">
+            available = 0,
+            threshold = 0;
+        </if>
+        <if test="isShare == 1">
+            available = available+#{delta},
+            threshold = #{threshold};
+        </if>
+
+        update  tbl_marketing_inventory set available=0,threshold=0 where city_product_id=#{cityProductId} and store_id>0;
+        update  tbl_marketing_inventory_base set available=0,threshold=0 where city_product_id=#{cityProductId} and store_id>0;
+
+    </update>
+    
+        <select id="selectAll" resultType="com.dailuobo.api.domain.soa.inventory.MarketingInventoryVo">
+        SELECT
+        t1.available,
+        t1.threshold,
+        t1.city_product_id,
+        t1.store_id,
+        t1.warehouse_id
+        FROM tbl_marketing_inventory t1
+        where t1.warehouse_id != -2
+        <if test="cityProductIds != null">
+            and t1.city_product_id IN
+            <foreach collection="cityProductIds" item="cityProductId" open="(" close=")" separator=",">
+                #{cityProductId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectAllByCityId" resultType="com.dailuobo.api.domain.soa.inventory.MarketingInventoryVo">
+        SELECT
+        t1.available,
+        t1.threshold,
+        t1.city_product_id,
+        t1.store_id,
+        t1.warehouse_id
+        FROM tbl_marketing_inventory t1
+        inner join tbl_city_product t2 on t1.city_product_id = t2.city_product_id
+        inner join tbl_hq_product t3 on t2.hq_product_id = t3.hq_product_id
+        where t2.city_id = #{cityId} and t2.del_flag = 1 and t3.del_flag = 1
+    </select>
+
+        <update id="setMarketingInventory">
+        INSERT INTO tbl_marketing_inventory (city_product_id, store_id, available, threshold)
+        VALUE (#{cityProductId}, #{storeId}, #{delta}, #{threshold})
+        ON DUPLICATE KEY UPDATE
+        <if test="source == 1">
+            available = available + #{delta},
+            threshold = #{threshold};
+        </if>
+        <if test="source == 2">
+            available = available + #{delta};
+        </if>
+
+        INSERT INTO tbl_marketing_inventory_base (city_product_id, store_id, available, threshold)
+        VALUE (#{cityProductId}, #{storeId}, #{delta}, #{threshold})
+        ON DUPLICATE KEY UPDATE
+        <if test="source == 1">
+            available = available + #{delta},
+            threshold = #{threshold};
+        </if>
+        <if test="source == 2">
+            available = available + #{delta};
+        </if>
+    </update>
+    
+    
+     <delete id="deleteMarketingInventory">
+        DELETE FROM tbl_marketing_inventory
+        WHERE 
+        city_product_id IN
+        <foreach collection="cityProductIds" item="cityProductId" open="(" close=");" separator=",">
+            #{cityProductId}
+        </foreach>
+
+        DELETE FROM tbl_marketing_inventory_base
+        WHERE 
+        city_product_id IN
+        <foreach collection="cityProductIds" item="cityProductId" open="(" close=");" separator=",">
+            #{cityProductId}
+        </foreach>
+    </delete>
+    
+    
+        <update id="setMarketingInventoryTask">
+        INSERT INTO tbl_marketing_inventory (city_product_id, store_id, available)
+            VALUE (#{cityProductId}, #{storeId}, #{delta})
+        ON DUPLICATE KEY UPDATE
+            available = available + #{delta};
+
+        INSERT INTO tbl_marketing_inventory_base (city_product_id, store_id, available)
+            VALUE (#{cityProductId}, #{storeId}, #{delta})
+        ON DUPLICATE KEY UPDATE
+            available = available + #{delta};
+    </update>
+</mapper>

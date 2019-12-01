@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dailuobo.dao.mapper.FrontCategoryRelatedCityProductMapper">
+    <insert id="create" useGeneratedKeys="true" keyProperty="id">
+        insert into ic_city_fcategory_related_city_product
+        (city_id,relation_id,city_product_id,product_no,display_order,create_user_id,update_user_id)
+        values
+        (
+        #{cityId},
+        #{relationId},
+        #{cityProductId},
+        #{productNo},
+        #{displayOrder},
+        #{createUserId},
+        #{updateUserId}
+        )
+    </insert>
+    <insert id="batchCreate">
+        insert into ic_city_fcategory_related_city_product
+        (city_id,relation_id,city_product_id,product_no,display_order,create_user_id,update_user_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.cityId},
+            #{item.relationId},
+            #{item.cityProductId},
+            #{item.productNo},
+            #{item.displayOrder},
+            #{item.createUserId},
+            #{item.updateUserId}
+            )
+        </foreach>
+    </insert>
+    <update id="update" parameterType="com.dailuobo.ic.domain.dao.model.category.front.FCategoryRelatedCityProductDO">
+        update ic_city_fcategory_related_city_product
+        <trim prefix="set" suffixOverrides=",">
+            <if test="isDeleted!=null">
+                is_deleted=#{isDeleted}
+            </if>
+            <if test="createUserId!=null">
+                update_user_id =#{updateUserId}
+            </if>
+            <if test="displayOrder!=null">
+                display_order = #{displayOrder}
+            </if>
+        </trim>
+        where is_deleted=0 and id=#{id}
+    </update>
+    <select id="listFCategoryRelatedCityProduct"
+            resultType="com.dailuobo.ic.domain.dao.model.category.front.FCategoryRelatedCityProductDO">
+        select * from ic_city_fcategory_related_city_product
+        where is_deleted=0 and relation_id =#{relationId}
+        order by display_order asc
+    </select>
+    <select id="listRelatedCityProductListByRelationIdList"
+            resultType="com.dailuobo.ic.domain.dao.model.category.front.FCategoryRelatedCityProductDO">
+        select * from ic_city_fcategory_related_city_product
+        where is_deleted=0 and city_id =#{cityId}
+        and relation_id in
+        <foreach collection="list" item="item" close=")" open="(" separator=",">
+            #{item}
+        </foreach>
+        order by display_order asc
+    </select>
+    <select id="load" resultType="com.dailuobo.ic.domain.dao.model.category.front.FCategoryRelatedCityProductDO">
+        select * from ic_city_fcategory_related_city_product
+        where is_deleted=0 and id =#{id}
+    </select>
+
+    <!--批量删除关联关系-->
+    <update id="deleteRelationByRelationId">
+        update ic_city_fcategory_related_city_product
+        set is_deleted=1,update_user_id = #{operatorId}
+        where is_deleted =0
+        and relation_id =#{relationId} and city_id =#{cityId}
+    </update>
+</mapper>

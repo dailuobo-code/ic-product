@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.biz.product.dao.mapper.ProductAsyLogMapper">
+    <insert id="insert" parameterType="com.mallcai.biz.product.model.AsyProductLogDO" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into  ic_product_create_asy_log
+        (request_id ,
+        item_id,
+        request_param_json,
+        after_convert_request_param_json,
+        asy_status
+        ,async_detail_string)
+        values
+            (
+            #{requestUUId,jdbcType=VARCHAR},
+            #{itemId,jdbcType=BIGINT} ,
+            #{requestParamJson,jdbcType=BLOB},
+            #{afterConvertRequestParamJson,jdbcType=BLOB} ,
+            #{asyStatusEnum,jdbcType=BLOB} ,
+            #{asyncDetailString,jdbcType=VARCHAR}
+            )
+
+    </insert>
+</mapper>

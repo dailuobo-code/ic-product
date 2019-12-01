@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MarketingInventoryMapper">
+
+    <select id="getStoreMarketingInventories" parameterType="map" resultType="StoreMarketingInventory">
+        SELECT
+        t1.city_product_id,
+        t1.product_no,
+        t3.hq_product_name,
+        t1.show_name,
+        t1.is_share,
+        t4.classify_name AS c2Name,
+        t5.classify_name AS c1Name,
+        t1.city_product_icon,
+        t1.disable_price,
+        t2.available,
+        t2.threshold,
+        #{storeId} AS store_id,
+        t6.available AS availableBase
+        FROM tbl_city_product t1
+        LEFT JOIN tbl_marketing_inventory t2 ON t1.city_product_id = t2.city_product_id AND t2.store_id = #{storeId}
+        LEFT JOIN tbl_marketing_inventory_base t6 ON t1.city_product_id = t6.city_product_id AND t6.store_id =
+        #{storeId},
+        tbl_hq_product t3,
+        tbl_product_classify t4,
+        tbl_product_classify t5
+        WHERE t1.hq_product_id = t3.hq_product_id
+        AND t3.classify_id = t4.classify_id
+        AND t4.father_id = t5.classify_id
+        AND t1.city_id = #{cityId}
+        AND t1.city_status = 1
+        AND t1.hq_status = 1
+        AND t1.delivery_mode = 1
+        and t1.merchant_id = 0
+        <if test="classifyId != null">
+            AND t4.classify_id = #{classifyId}
+        </if>
+        <if test="parentClassifyId != null">
+            AND t4.classify_id IN (SELECT classify_id FROM
+            tbl_product_classify WHERE father_id = #{parentClassifyId})
+        </if>
+        <if test="isShare != null">
+            AND t1.is_share = #{isShare}
+        </if>
+        <if test="productNo != null">
+            AND t1.product_no LIKE concat('%', #{productNo}, '%')
+        </if>
+        <if test="hqProductName != null">
+            AND t3.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="showName != null">
+            AND t1.show_name LIKE concat('%', #{showName}, '%')
+        </if>
+        
+        GROUP BY t1.city_product_id
+        ORDER BY t1.product_no
+    </select>
+
+    <select id="getMarketingInventories" resultType="MarketingInventory">
+        SELECT
+            t1.store_id,
+            t1.store_name,
+            #{cityProductId} AS city_product_id,
+            t2.available,
+            t2.threshold,
+            t3.available     AS availableBase
+        FROM
+            tbl_store t1
+            LEFT JOIN tbl_marketing_inventory t2 ON t1.store_id = t2.store_id AND t2.city_product_id = #{cityProductId}
+            LEFT JOIN tbl_marketing_inventory_base t3
+                ON t1.store_id = t3.store_id AND t3.city_product_id = #{cityProductId}
+        WHERE
+            t1.city_id = #{cityId}
+            AND t1.status = 2
+        GROUP BY t1.store_id
+    </select>
+    <select id="getMarketingShares" resultType="MarketingInventory">
+   SELECT
+            t1.city_product_id,
+            t1.available,
+            t1.threshold,
+            t2.available AS availableBase,
+            t1.warehouse_id AS warehouseId
+        FROM
+            tbl_marketing_inventory t1
+			LEFT JOIN tbl_marketing_inventory_base t2
+				on t1.store_id = t2.store_id AND t1.city_product_id = t2.city_product_id
+        WHERE
+           t1.store_id = #{storeId} and t1.city_product_id = #{cityProductId} and t1.del_flag=1
+    </select>
+
+    <select id="getBulkMarketingShares" resultType="MarketingInventory">
+        select city_product_id, sum(available) as available, store_id
+        from tbl_marketing_inventory
+        where store_id = 0 and city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId" open="(" separator="," close=")">
+            #{cityProductId}
+        </foreach>
+        group by city_product_id
+    </select>
+
+    <select id="getWareHouseMarketingShares" resultType="MarketingInventory">
+        SELECT
+			t.id AS warehouseId,
+			t.name AS warehouseName,
+            t1.city_product_id,
+            t1.available available,
+            t1.threshold AS threshold,
+            t2.available AS availableBase
+        FROM
+        	erp_warehouse t
+            LEFT join tbl_marketing_inventory t1 on t1.warehouse_id = t.id and t1.store_id = #{storeId} and t1.city_product_id = #{cityProductId}
+			LEFT JOIN tbl_marketing_inventory_base t2 on t1.store_id = t2.store_id AND t1.city_product_id = t2.city_product_id and t1.warehouse_id = t2.warehouse_id
+			where t.city_id = #{cityId} and t.type = #{wareHouseType}
+    </select>
+
+<!-- 根据cityId和cityProductId更新是否共享 -->
+<update id="updateMarketingShares" >
+  UPDATE tbl_city_product
+        SET is_share = #{isShare},update_time =now(),update_user_id = #{updateUserId}
+        WHERE city_id = #{cityId} and city_product_id = #{cityProductId}
+</update>
+
+<select id="checkProduct" resultType="String">
+select check_product(#{cityProductId});
+</select>
+
+    <select id="checkProductPiece" resultType="int">
+        SELECT count(0) FROM  tbl_piece WHERE  city_product_id =#{cityProductId} and status!=9;
+
+    </select>
+
+    <insert id="updateMarketLog">
+    INSERT INTO tbl_marketing_inventory_update_log(city_id, store_id, city_product_id, update_num, create_user, create_time,warehouse_id)
+            VALUES ( #{cityId}, #{storeId}, #{cityProductId}, #{delta}, #{updateUserId}, now(),#{warehouseId});
+    </insert>
+
+    <update id="updateThemeProductOrder">
+		update tbl_theme_product_list set theme_product_order = 9998,update_time = now()
+		where del_flag = 1 and theme_product_order = 9999
+		and city_product_id = #{cityProductId}
+	</update>
+
+
+    <update id="updateBannerProductOrder">
+		update tbl_banner_product_list set banner_product_order = 9998,update_time = now()
+		where del_flag = 1 and banner_product_order = 9999
+		and city_product_id = #{cityProductId}
+	</update>
+
+    <update id="updateTileProductOrder">
+		update tbl_tile_product_list set tile_product_order = 9998,update_time = now()
+		where del_flag = 1 and tile_product_order = 9999
+		and city_product_id = #{cityProductId}
+	</update>
+
+    <select id="getBannerIdsByProductId" resultType="java.lang.Integer">
+        select distinct banner_id from tbl_banner_product_list
+        where del_flag = 1
+		and city_product_id = #{cityProductId}
+    </select>
+    <select id="getThemeIdsByProductId" resultType="java.lang.Integer">
+        select distinct theme_id from tbl_theme_product_list
+        where del_flag = 1
+		and city_product_id = #{cityProductId}
+    </select>
+    <select id="getTileIdsByProductId" resultType="java.lang.Integer">
+        select distinct tile_id from tbl_tile_product_list
+        where del_flag = 1
+		and city_product_id = #{cityProductId}
+    </select>
+
+
+
+    <select id="queryNoIsshareProduct" parameterType="map" resultType="string">
+        select group_concat(product_no) product_no from  tbl_city_product where  is_share=0 and del_flag=1 and city_id=#{cityId} and city_product_id in
+        <foreach collection="list" item="item"  open="("  separator="," close=");">
+            #{item.cityProductId}
+        </foreach>
+    </select>
+
+    <select id="queryNoProduct" parameterType="map" resultType="integer">
+        select city_product_id from  tbl_city_product where del_flag=1 and product_no =#{productNo} and city_id =#{cityId}
+    </select>
+
+
+    <select id="queryPieceByCityProductIds" parameterType="map" resultType="string">
+        SELECT group_concat(city_product_id) as city_product_id FROM tbl_piece_product
+        WHERE  status in(0,1) and city_product_id in
+        <foreach collection="list" item="item" open="("  separator="," close=");">
+            #{cityProductId}
+        </foreach>
+
+    </select>
+
+    <update id="updateMarketingInventory" parameterType="map">
+        <foreach collection="list"  item="item" >
+            INSERT INTO tbl_marketing_inventory (city_product_id, store_id, available, threshold,create_user_id)
+            VALUE (#{item.cityProductId}, 0, #{item.delta},0,#{updateUserId})
+            ON DUPLICATE KEY UPDATE
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="type == 0">
+                available = 0,
+                threshold = 0;
+            </if>
+            <if test="type == 1">
+                available =  (case  when  available+#{item.delta} &gt;0 then available+#{item.delta} when available+#{item.delta} &lt;=0 then 0 end)
+                <if test="item.threshold !=null">
+                    ,threshold=#{item.threshold}
+                </if>
+                ;
+            </if>
+
+
+       <!-- update tbl_marketing_inventory set available =
+            (case  when  available+#{item.delta} &gt;0 then available+#{item.delta} when available+#{item.delta} &lt;=0 then 0 end),
+            <if test="item.threshold !=null">
+                threshold=#{item.threshold},
+            </if>
+            create_user_id=#{updateUserId}
+        where city_product_id=#{item.cityProductId} and store_id = 0;-->
+        </foreach>
+
+        <foreach collection="list"  item="item" >
+        INSERT INTO tbl_marketing_inventory_base (city_product_id, store_id, available,threshold)
+        VALUE (#{item.cityProductId}, 0, #{item.delta},0)
+        ON DUPLICATE KEY UPDATE
+        <if test="type == 0">
+            available = 0,
+            threshold = 0;
+        </if>
+        <if test="type == 1">
+            available =   (case  when  available+#{item.delta} &gt;0 then available+#{item.delta} when available+#{item.delta} &lt;=0 then 0 end)
+            <if test="item.threshold !=null">
+                ,threshold=#{item.threshold}
+            </if>
+            ;
+        </if>
+
+
+
+        <!--update tbl_marketing_inventory_base set
+            available =
+            (case  when  available+#{item.delta} &gt;0 then available+#{item.delta} when available+#{item.delta} &lt;=0 then 0 end)
+            <if test="item.threshold !=null">
+            ,threshold=#{item.threshold}
+            </if>
+        where city_product_id=#{item.cityProductId} and store_id = 0;-->
+        </foreach>
+    </update>
+
+
+    <select id="selectCityProductId" resultType="com.dailuobo.api.domain.soa.inventory.MarketingInventoryVo" parameterType="map">
+        SELECT
+        t1.available,
+        t1.threshold,
+        t1.city_product_id,
+        t1.store_id
+        FROM tbl_marketing_inventory t1 where t1.store_id =0
+        <if test="list != null">
+            and t1.city_product_id IN
+            <foreach collection="list" item="item" open="(" close=")" separator=",">
+                #{item.cityProductId}
+            </foreach>
+        </if>
+    </select>
+
+    <insert id="saveImportLog" parameterType="map">
+        <foreach collection="list" item="item" >
+        INSERT INTO tbl_import_marketing (product_no,city_product_id,delta,createuser,createtime) values
+            ( #{item.productNo},#{item.cityProductId},#{item.delta},#{createuser},now());
+        </foreach>
+    </insert>
+    <select id="getOrderInventoryListByParam" resultType="com.dailuobo.api.domain.entity.OrderInventory" parameterType="map">
+        SELECT
+          d.city_product_id,
+          d.store_id,
+          d.product_num
+        FROM tbl_order o
+        JOIN tbl_order_detail d
+        ON o.order_id = d.order_id
+        WHERE o.create_time >= #{beginDate}
+        <![CDATA[
+          AND o.create_time < #{endDate}
+        ]]>
+        AND o.asyn_pay_status = '2'
+        AND o.status=2
+        and d.city_product_id = #{cityProductId}
+    </select>
+
+    <select id="batchQueryOrderInventoryByParam" resultType="com.dailuobo.api.domain.entity.OrderInventory" parameterType="map">
+        SELECT
+          d.city_product_id,
+          d.store_id,
+          d.product_num
+        FROM tbl_order o
+        JOIN tbl_order_detail d
+        ON o.order_id = d.order_id
+        WHERE o.create_time >= #{beginDate}
+        <![CDATA[
+          AND o.create_time < #{endDate}
+        ]]>
+        AND o.asyn_pay_status = '2'
+        AND o.status=2
+        and d.city_product_id IN
+        <foreach collection="list" item="cityProductId" open="(" close=")" separator=",">
+            #{cityProductId}
+        </foreach>
+    </select>
+
+
+    <select id="countMultiSpec" resultType="java.lang.Integer" parameterType="map">
+        select count(id) from
+            ic_city_product_group_items
+            where deleted = 0
+              and city_product_id IN
+                <foreach collection="list" item="cityProductId" open="(" close=")" separator=",">
+                    #{cityProductId}
+                </foreach>
+    </select>
+</mapper>

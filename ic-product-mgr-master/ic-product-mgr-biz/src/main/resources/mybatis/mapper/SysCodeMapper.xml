@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SysCodeMapper">
+
+<select id="selectAll" resultType="SysCode">
+	SELECT * FROM tbl_sys_code
+	<where>
+	 status = 0
+	<if test="type !=null">
+	AND type = #{type}
+	</if>
+	
+	</where>
+</select>
+<update id="edit">
+  UPDATE  tbl_sys_code
+  SET update_user_id = #{userId},update_time = now()
+        
+        <if test="type != null">
+            , type = #{type}
+        </if>
+        <if test="typename != null">
+            , typename = #{typename}
+        </if>
+        <if test="val != null">
+            , val = #{val}
+        </if>
+         <if test="name != null">
+            , name = #{name}
+        </if>
+         <if test="orderno != null">
+            , orderno = #{orderno}
+        </if>
+         <if test="url != null">
+            , url = #{url}
+        </if>
+         <if test="iconUrl != null">
+            , icon_url = #{iconUrl}
+        </if>
+        WHERE
+        id = #{id}
+</update> 
+
+ <insert id="add">
+	INSERT INTO tbl_sys_code
+	<trim prefix="(" suffix=")" suffixOverrides=",">
+       		type,typename,val,name,status,orderno,create_user_id,create_time
+            <if test="url != null">
+                ,url
+            </if>
+           <if test="iconUrl != null">
+                ,icon_url
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{type},#{typename},#{val},#{name},0,#{orderno},#{userId},now()
+            <if test="url != null">
+                ,#{url}
+            </if>
+            <if test="iconUrl != null">
+                ,#{iconUrl}
+            </if>
+        </trim>
+</insert> 
+
+	<select id="getSysCodeType" resultType="SysCode">
+		SELECT type ,typename FROM tbl_sys_code 
+		WHERE `status` = 0
+		GROUP BY type
+	</select>
+	
+	<update id="delete">
+		UPDATE tbl_sys_code
+		<set>
+			update_user_id = #{userId},update_time = now(),status = #{status}
+		</set>
+		
+		<where>
+		id = #{id}
+		</where>
+	</update>
+</mapper>

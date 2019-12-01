@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SpecMapper">
+
+    <select id="getDefaultSpec" parameterType="map" resultType="Spec">
+        SELECT
+            spec_id,
+            city_product_id,
+            real_price,
+            avg_price,
+            avg_unit,
+            unit_type,
+            package_max_weight,
+            package_quantity,
+            change_flag,
+            vip_product_price,
+            avg_price_floor,
+            avg_price_ceiling
+        FROM
+            tbl_sales_spec
+        WHERE
+            city_product_id = #{cityProductId}
+            AND store_id = 0
+            AND del_flag = 1
+    </select>
+
+    <select id="getSpecs" parameterType="map" resultType="Spec">
+        SELECT
+            IFNULL(t2.spec_id, t3.spec_id)                       AS spec_id,
+            IFNULL(t2.city_product_id, t3.city_product_id)       AS city_product_id,
+            IFNULL(t2.real_price, t3.real_price)                 AS real_price,
+            IFNULL(t2.avg_price, t3.avg_price)                   AS avg_price,
+            IFNULL(t2.avg_unit, t3.avg_unit)                     AS avg_unit,
+            IFNULL(t2.unit_type, t3.unit_type)                   AS unit_type,
+            IFNULL(t2.threshold, 0)                              AS threshold,
+            IFNULL(t2.package_max_weight, t3.package_max_weight) AS package_max_weight,
+            IFNULL(t2.package_quantity, t3.package_quantity)     AS package_quantity,
+            IFNULL(t2.change_flag, t3.change_flag)               AS change_flag,
+            t1.store_id,
+            t1.store_name,
+            IFNULL(t4.adjustment_factor, t5.adjustment_factor)   AS delta,
+            IFNULL(t4.upper_limit, t5.upper_limit)               AS upperLimit,
+            IFNULL(t4.lower_limit, t5.lower_limit)               AS lowerLimit,
+            IFNULL(t2.avg_price_ceiling, t3.avg_price_ceiling) AS avg_price_ceiling,
+            IFNULL(t2.avg_price_floor, t3.avg_price_floor) AS avg_price_floor
+        FROM
+            tbl_store t1 LEFT JOIN tbl_sales_spec t2
+                ON t1.store_id = t2.store_id AND t2.city_product_id = #{cityProductId}
+            LEFT JOIN tbl_product_adjustment t4 ON t1.store_id = t4.store_id AND t4.city_product_id = #{cityProductId}
+            ,
+            tbl_sales_spec t3 LEFT JOIN tbl_product_adjustment t5
+                ON t3.city_product_id = t5.city_product_id AND t3.store_id = t5.store_id
+        WHERE
+            t1.city_id = #{cityId}
+            AND t1.status = 2
+            AND t3.city_product_id = #{cityProductId}
+            AND t3.store_id = 0
+    </select>
+
+    <insert id="create" parameterType="Spec" useGeneratedKeys="true" keyColumn="spec_id" keyProperty="specId">
+        INSERT INTO tbl_sales_spec
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cityProductId != null">
+                city_product_id,
+            </if>
+            <if test="realPrice != null">
+                real_price,
+            </if>
+            <if test="avgPrice != null">
+                avg_price,
+            </if>
+            <if test="avgUnit != null">
+                avg_unit,
+            </if>
+            <if test="unitType != null">
+                unit_type,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="standardFlag != null">
+                standard_flag,
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight,
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity,
+            </if>
+            <if test="changeFlag != null">
+                change_flag,
+            </if>
+            <if test="storeId != null">
+                store_id,
+            </if>
+            <if test="cityId != null">
+                city_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cityProductId != null">
+                #{cityProductId},
+            </if>
+            <if test="realPrice != null">
+                #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                #{unitType},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId},
+            </if>
+            <if test="standardFlag != null">
+                #{standardFlag},
+            </if>
+            <if test="packageMaxWeight != null">
+                #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                #{changeFlag},
+            </if>
+            <if test="storeId != null">
+                #{storeId},
+            </if>
+            <if test="cityId != null">
+                #{cityId},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="Spec">
+        UPDATE tbl_sales_spec
+        <set>
+            <if test="realPrice != null">
+                real_price = #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                avg_price = #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                avg_unit = #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                unit_type = #{unitType},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="threshold != null">
+                threshold = #{threshold},
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight = #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity = #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                change_flag = #{changeFlag},
+            </if>
+        </set>
+        WHERE spec_id = #{specId}
+        LIMIT 1;
+    </update>
+
+    <update id="updateDefaultSpec" parameterType="Spec">
+        UPDATE tbl_sales_spec
+        <set>
+            <if test="realPrice != null">
+                real_price = #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                avg_price = #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                avg_unit = #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                unit_type = #{unitType},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="threshold != null">
+                threshold = #{threshold},
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight = #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity = #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                change_flag = #{changeFlag},
+            </if>
+            <if test="vipCount != null">
+                vip_count = #{vipCount},
+            </if>
+            <if test="vipProductPrice != null">
+                vip_product_price = #{vipProductPrice},
+            </if>
+            <if test="avgPriceFloor != null">
+                avg_price_floor = #{avgPriceFloor},
+            </if>
+            <if test="avgPriceCeiling != null">
+                avg_price_ceiling = #{avgPriceCeiling}
+            </if>
+        </set>
+        WHERE city_product_id = #{cityProductId}
+            <if test="excludeStoreIds != null">
+            AND store_id NOT IN
+            <foreach collection="excludeStoreIds" open="(" close=")" separator=","
+                     item="storeId">
+                #{storeId}
+            </foreach>
+        </if>
+        ;
+        
+        <if test="threshold!=null">
+        UPDATE tbl_limit_prod_rec
+        SET threshold = #{threshold}
+        WHERE product_id = #{cityProductId}
+              AND city_id = #{cityId}
+              AND limit_time = STR_TO_DATE(DATE(NOW()), '%Y-%m-%d')
+            <if test="excludeStoreIds != null">
+                AND store_id NOT IN
+                <foreach collection="excludeStoreIds" open="(" close=")" separator=","
+                         item="storeId">
+                    #{storeId}
+                </foreach>
+            </if>
+              ;
+        
+        </if>
+    </update>
+
+    <update id="createOrUpdate" parameterType="Spec">
+    <!-- undo 需要添加会员折扣 -->
+        INSERT INTO tbl_sales_spec (city_product_id,
+                                    real_price,
+                                    avg_price,
+                                    avg_unit,
+                                    unit_type,
+                                    spec_name,
+                                    create_user_id,
+                                    threshold,
+                                    package_max_weight,
+                                    change_flag,
+                                    package_quantity,
+                                    store_id,
+                                    city_id,
+                                    vip_count)
+            SELECT
+                city_product_id,
+                #{realPrice},
+                #{avgPrice},
+                avg_unit,
+                unit_type,
+                spec_name,
+                #{createUserId},
+                #{threshold},
+                package_max_weight,
+                change_flag,
+                package_quantity,
+                #{storeId},
+                #{cityId},
+                vip_count
+            FROM tbl_sales_spec
+            WHERE city_product_id = #{cityProductId}
+                  AND store_id = 0
+                  AND city_id = #{cityId}
+        ON DUPLICATE KEY UPDATE
+            real_price     = #{realPrice},
+            avg_price      = #{avgPrice},
+            threshold      = #{threshold},
+            update_user_id = #{updateUserId};
+
+        UPDATE tbl_limit_prod_rec
+        SET threshold = #{threshold}
+        WHERE product_id = #{cityProductId}
+              AND store_id = #{storeId}
+              AND city_id = #{cityId}
+              AND limit_time = STR_TO_DATE(DATE(NOW()), '%Y-%m-%d');
+    </update>
+
+    <select id="getStoreSpecs" parameterType="map" resultType="StoreSpec">
+        SELECT
+        t1.delivery_mode,
+        t1.city_product_id,
+        t1.product_no,
+        t3.hq_product_name,
+        t1.show_name,
+        t4.classify_name AS c2Name,
+        t5.classify_name AS c1Name,
+        t1.city_product_icon,
+        t1.disable_price,
+        t1.advise_price,
+        t1.sku_id,
+        t1.item_id,
+        IFNULL(t2.real_price, t6.real_price) AS real_price,
+        IFNULL(t2.avg_price, t6.avg_price) AS avg_price,
+        IFNULL(t2.avg_unit, t6.avg_unit) AS avg_unit,
+        IFNULL(t2.unit_type, t6.unit_type) AS unit_type,
+        IFNULL(t2.threshold, 0) AS threshold,
+        IFNULL(t2.package_max_weight, t6.package_max_weight) AS package_max_weight,
+        IFNULL(t2.package_quantity, t6.package_quantity) AS package_quantity,
+        IFNULL(t2.change_flag, t6.change_flag) AS change_flag,
+        t1.weight_unit,
+        t1.num_unit,
+        #{storeId} AS store_id,
+        t1.keyword AS cityKeyword,
+        t1.icon_tip AS cityIconTip,
+        t7.keyword AS storeKeyword,
+        t7.icon_tip AS storeIconTip,
+        IFNULL(t8.adjustment_factor, t9.adjustment_factor) AS delta,
+        IFNULL(t8.upper_limit, t9.upper_limit) AS upperLimit,
+        IFNULL(t8.lower_limit, t9.lower_limit) AS lowerLimit,
+        t1.merchant_id,
+        IFNULL(t2.avg_price_ceiling, t6.avg_price_ceiling) AS avg_price_ceiling,
+        IFNULL(t2.avg_price_floor, t6.avg_price_floor) AS avg_price_floor
+        FROM tbl_city_product t1
+        LEFT JOIN tbl_sales_spec t2 ON t1.city_product_id = t2.city_product_id AND t2.store_id = #{storeId}
+        LEFT JOIN tbl_store_product_info t7 ON t1.city_product_id = t7.city_product_id AND t7.store_id = #{storeId}
+        LEFT JOIN tbl_product_adjustment t8 ON t1.city_product_id = t8.city_product_id AND t8.store_id = #{storeId}
+        LEFT JOIN tbl_product_adjustment t9 ON t1.city_product_id = t9.city_product_id AND t9.store_id = 0,
+        tbl_hq_product t3,
+        tbl_product_classify t4,
+        tbl_product_classify t5,
+        tbl_sales_spec t6
+        WHERE t1.hq_product_id = t3.hq_product_id
+        AND t3.classify_id = t4.classify_id
+        AND t4.father_id = t5.classify_id
+        AND t1.city_id = #{cityId}
+        AND t1.city_product_id = t6.city_product_id
+        AND t6.store_id = 0
+        AND t1.city_status = 1
+        AND t1.hq_status = 1
+        <if test="merchantIdList != null and merchantIdList.size() > 0">
+            and t1.merchant_id in
+            <foreach collection="merchantIdList" item="merchantId"
+                     open="(" close=")" separator=",">
+                #{merchantId}
+            </foreach>
+        </if>
+        <if test="queryMerchantId != null">
+            and t1.merchant_id = #{queryMerchantId}
+        </if>
+        <if test="classifyId != null">
+            AND t4.classify_id = #{classifyId}
+        </if>
+        <if test="parentClassifyId != null">
+            AND t4.classify_id IN (SELECT classify_id FROM
+            tbl_product_classify WHERE father_id = #{parentClassifyId})
+        </if>
+        <if test="productNo != null">
+            AND t1.product_no LIKE concat('%', #{productNo}, '%')
+        </if>
+        <if test="hqProductName != null">
+            AND t3.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="showName != null">
+            AND t1.show_name LIKE concat('%', #{showName}, '%')
+        </if>
+        <if test="goodsType!=null">
+            AND t1.goods_type = #{goodsType}
+        </if>
+    </select>
+
+    <select id="getSpecAdjustment" resultType="SpecAdjustment">
+        SELECT
+            city_id,
+            store_id,
+            city_product_id,
+            adjustment_factor AS delta,
+            upper_limit,
+            lower_limit
+        FROM
+            tbl_product_adjustment
+        WHERE city_id = #{cityId}
+              AND store_id = #{storeId}
+              AND city_product_id = #{cityProductId}
+    </select>
+
+    <update id="updateAdjustmentFactor">
+        INSERT INTO tbl_product_adjustment (city_id, store_id, city_product_id, adjustment_factor, upper_limit,
+        lower_limit, create_user_id)
+        VALUE
+        (#{cityId}, #{storeId}, #{cityProductId}, #{delta}, #{upperLimit}, #{lowerLimit}, #{userId})
+        ON DUPLICATE KEY UPDATE
+        adjustment_factor = #{delta},
+        upper_limit = #{upperLimit},
+        lower_limit = #{lowerLimit},
+        update_user_id = #{userId};
+
+        <if test="unify == 1">
+            INSERT INTO tbl_product_adjustment (city_id, store_id, city_product_id, adjustment_factor, upper_limit,
+            lower_limit, create_user_id)
+            SELECT
+            #{cityId},
+            s.store_id,
+            #{cityProductId},
+            #{delta},
+            #{upperLimit},
+            #{lowerLimit},
+            #{userId}
+            FROM
+            tbl_product_adjustment t
+            LEFT JOIN tbl_store s ON t.city_id = s.city_id AND s.status = 2
+            WHERE t.city_id = #{cityId}
+            AND t.store_id = 0
+            AND t.city_product_id = #{cityProductId}
+            ON DUPLICATE KEY UPDATE
+            adjustment_factor = #{delta},
+            upper_limit = #{upperLimit},
+            lower_limit = #{lowerLimit},
+            update_user_id = #{userId};
+        </if>
+    </update>
+    
+    <update id="updateDefaultVipCount">
+    UPDATE tbl_sales_spec
+    <set>
+       update_time =now(),update_user_id = #{userId},vip_count = #{vipCount}  
+    </set>
+    WHERE city_product_id IN
+    <foreach collection="cityProductIds" open="(" close=");" separator="," item="cityProductId">
+            #{cityProductId}
+    </foreach>
+    
+    </update>
+    
+    <select id="getNeedInsertStores" resultType="int">
+    
+		SELECT store_id FROM tbl_store 
+		WHERE status = 2 
+		AND del_flag = 1
+		and city_id = #{cityId}
+		AND store_id not in(
+			SELECT store_id FROM tbl_sales_spec WHERE city_product_id = #{cityProductId} AND city_id = #{cityId})
+    </select>
+    
+    
+    <insert id="insertDefaultSpec">
+     <foreach collection="storeIds" open="" close="" separator=";" item="storeId">
+            INSERT INTO tbl_sales_spec (city_product_id,
+                                    real_price,
+                                    avg_price,
+                                    avg_unit,
+                                    unit_type,
+                                    spec_name,
+                                    create_user_id,
+                                    threshold,
+                                    package_max_weight,
+                                    change_flag,
+                                    package_quantity,
+                                    store_id,
+                                    city_id,
+                                    vip_count)
+            SELECT
+                city_product_id,
+                #{realPrice},
+                #{avgPrice},
+                avg_unit,
+                unit_type,
+                spec_name,
+                #{userId},
+                #{threshold},
+                package_max_weight,
+                change_flag,
+                package_quantity,
+                #{storeId},
+                #{cityId},
+                vip_count
+            FROM tbl_sales_spec
+            WHERE city_product_id = #{cityProductId}
+                  AND store_id = 0
+                  AND city_id = #{cityId}
+    </foreach>
+    
+    </insert>
+
+    <select id="getDefaultSpecBySyncProduct" parameterType="map" resultType="Spec">
+        SELECT
+            spec_id,
+            city_product_id,
+            real_price,
+            avg_price,
+            avg_unit,
+            unit_type,
+            package_max_weight,
+            package_quantity,
+            change_flag,
+            threshold,
+            vip_product_price,
+            vip_count
+        FROM
+            tbl_sales_spec
+        WHERE
+            city_product_id = #{cityProductId}
+            AND store_id = 0
+            AND del_flag = 1
+    </select>
+
+    <insert id="syncProductSpecCreate" parameterType="Spec" useGeneratedKeys="true" keyColumn="spec_id" keyProperty="specId">
+        INSERT INTO tbl_sales_spec
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cityProductId != null">
+                city_product_id,
+            </if>
+            <if test="realPrice != null">
+                real_price,
+            </if>
+            <if test="avgPrice != null">
+                avg_price,
+            </if>
+            <if test="avgUnit != null">
+                avg_unit,
+            </if>
+            <if test="unitType != null">
+                unit_type,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="standardFlag != null">
+                standard_flag,
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight,
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity,
+            </if>
+            <if test="changeFlag != null">
+                change_flag,
+            </if>
+            <if test="storeId != null">
+                store_id,
+            </if>
+            <if test="cityId != null">
+                city_id,
+            </if>
+            <if test="threshold != null">
+                threshold,
+            </if>
+            <if test="vipCount != null">
+                vip_count,
+            </if>
+            <if test="vipProductPrice != null">
+                vip_product_price,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cityProductId != null">
+                #{cityProductId},
+            </if>
+            <if test="realPrice != null">
+                #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                #{unitType},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId},
+            </if>
+            <if test="standardFlag != null">
+                #{standardFlag},
+            </if>
+            <if test="packageMaxWeight != null">
+                #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                #{changeFlag},
+            </if>
+            <if test="storeId != null">
+                #{storeId},
+            </if>
+            <if test="cityId != null">
+                #{cityId},
+            </if>
+            <if test="threshold != null">
+                #{threshold},
+            </if>
+            <if test="vipCount != null">
+                #{vipCount},
+            </if>
+            <if test="vipProductPrice != null">
+                #{vipProductPrice},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="syncProductSpecUpdate" parameterType="Spec">
+        UPDATE tbl_sales_spec
+        <set>
+            <if test="realPrice != null">
+                real_price = #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                avg_price = #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                avg_unit = #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                unit_type = #{unitType},
+            </if>
+            vip_product_price = #{vipProductPrice},
+            vip_count = #{vipCount},
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="threshold != null">
+                threshold = #{threshold},
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight = #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity = #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                change_flag = #{changeFlag},
+            </if>
+        </set>
+        WHERE spec_id = #{specId}
+        LIMIT 1;
+    </update>
+
+    <insert id="addSpec" useGeneratedKeys="true" keyProperty="spec.specId">
+        insert into tbl_sales_spec
+        (`city_id`, `store_id`, `city_product_id`, `max_num`, `min_num`, `max_weight`,
+        `min_weight`, `real_price`, `avg_price`, `avg_unit`, `unit_type`, `spec_name`,
+        `status`, `show_flag`, `standard_flag`, `del_flag`, `create_user_id`, `create_time`,
+        `update_user_id`, `update_time`, `threshold`, `package_max_weight`, `change_flag`,
+        `package_quantity`, `vip_count`, `vip_product_price`, `avg_price_ceiling`, `avg_price_floor`)
+        value
+        (#{spec.cityId}, #{spec.storeId}, #{spec.cityProductId}, null, null, null,
+        null, #{spec.realPrice}, #{spec.avgPrice}, #{spec.avgUnit}, #{spec.unitType}, 2,
+        1, null, #{spec.standardFlag}, 1, #{userId}, now(),
+        #{userId}, now(), #{spec.threshold}, #{spec.packageMaxWeight}, #{spec.changeFlag},
+        #{spec.packageQuantity}, #{spec.vipCount}, #{spec.vipProductPrice}, #{spec.avgPriceCeiling}, #{spec.avgPriceFloor})
+    </insert>
+
+    <insert id="batchAddSpec" useGeneratedKeys="true" keyProperty="specId">
+        insert into tbl_sales_spec
+        (`city_id`, `store_id`, `city_product_id`, `max_num`, `min_num`, `max_weight`,
+        `min_weight`, `real_price`, `avg_price`, `avg_unit`, `unit_type`, `spec_name`,
+        `status`, `show_flag`, `standard_flag`, `del_flag`, `create_user_id`, `create_time`,
+        `update_user_id`, `update_time`, `threshold`, `package_max_weight`, `change_flag`,
+        `package_quantity`, `vip_count`, `vip_product_price`,
+        `avg_price_ceiling`, `avg_price_floor`)
+        values
+        <foreach collection="list" item="spec" separator=",">
+            (#{spec.cityId}, #{spec.storeId}, #{spec.cityProductId}, null, null, null,
+            null, #{spec.realPrice}, #{spec.avgPrice}, #{spec.avgUnit}, #{spec.unitType}, 2,
+            1, null, #{spec.standardFlag}, 1, #{spec.createUserId}, now(),
+            #{spec.updateUserId}, now(), #{spec.threshold}, #{spec.packageMaxWeight}, #{spec.changeFlag},
+            #{spec.packageQuantity}, #{spec.vipCount}, #{spec.vipProductPrice},
+            #{spec.avgPriceCeiling}, #{spec.avgPriceFloor})
+        </foreach>
+        on duplicate key update
+        update_time = values(update_time)
+    </insert>
+
+    <select id="getDefaultSpecByProductIds" resultType="Spec">
+        SELECT
+            spec_id,
+            city_product_id,
+            real_price,
+            avg_price,
+            avg_unit,
+            unit_type,
+            package_max_weight,
+            package_quantity,
+            change_flag,
+            vip_product_price,
+            avg_price_floor,
+            avg_price_ceiling
+        FROM
+            tbl_sales_spec
+        WHERE
+            city_product_id in
+            <foreach collection="cityProductIds" item="cityProductId" open="(" separator="," close=")">
+                #{cityProductId}
+            </foreach>
+            AND store_id = 0
+            AND del_flag = 1
+    </select>
+
+</mapper>

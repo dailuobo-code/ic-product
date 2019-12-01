@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.UndSaleMapper">
+	<insert id="pickupLog">
+			 INSERT INTO und_pickup_log (city_id, store_id, pickup_date, operator_id, pickup_json)
+            VALUE (#{cityId}, #{storeId}, CURRENT_DATE(), #{operatorId}, #{json})
+	</insert>
+	
+	<select id="selectCount" resultType="UnsaleCount">
+	SELECT a.`city_id`,a.store_id,a.pickup_time,get_store_name(a.`store_id`) storeName,b.`city_product_id`,b.`prod_show_name`,SUM(b.`actual_price`) actualPrice,COUNT(0) num 
+	,cp.l1_l2_names 'classifyName'
+	FROM und_order a,und_order_detail_js b
+	LEFT JOIN tbl_city_product cp ON b.city_product_id = cp.city_product_id
+	LEFT JOIN tbl_hq_product hp ON cp.product_no = hp.product_no
+	WHERE a.`und_order_id` = b.`und_order_id` 
+	AND a.`asyn_pay_status`=2 
+	AND NOT EXISTS (SELECT 0 FROM und_order_refund uor WHERE uor.und_order_detail_js_id = b.id)  
+	<if test="storeId !=null">
+	AND a.store_id = #{storeId}
+	</if>
+		<if test="classifyId != null">
+			AND hp.classify_id = #{classifyId}
+		</if>
+		<if test="parentClassifyId != null">
+			and hp.classify_id in (select classify_id from
+			tbl_product_classify where father_id = #{parentClassifyId})
+		</if>
+	<if test="cityProductId !=null">
+	AND b.city_product_id = #{cityProductId}
+	</if>
+	AND a.`pickup_time` between  #{from} AND #{to}
+	GROUP BY b.`city_product_id`,b.`store_id`
+	</select>
+	
+	<select id="getCityProduct" resultType="int">
+	SELECT city_product_id FROM tbl_city_product WHERE product_no = #{sku} and city_id = #{cityId}
+	</select>
+	
+	<select id="selectAllStoreCount" resultType="UnsaleCount">
+	SELECT a.`city_id`,a.store_id,get_store_name(a.`store_id`) storeName,SUM(b.`actual_price`) actualPrice,COUNT(0) num 
+	FROM und_order a,und_order_detail_js b
+	LEFT JOIN tbl_city_product cp ON b.city_product_id = cp.city_product_id
+	LEFT JOIN tbl_hq_product hp ON cp.product_no = hp.product_no
+	WHERE a.`und_order_id` = b.`und_order_id`
+		<if test="cityId !=null"> and a.city_id = #{cityId}</if>
+	AND a.`asyn_pay_status`=2
+		<if test="classifyId != null">
+			AND hp.classify_id = #{classifyId}
+		</if>
+		<if test="parentClassifyId != null">
+			and hp.classify_id in (select classify_id from
+			tbl_product_classify where father_id = #{parentClassifyId})
+		</if>
+	AND a.`pickup_time` between  #{from} AND #{to}
+	AND NOT EXISTS (SELECT 0 FROM und_order_refund uor WHERE uor.und_order_detail_js_id = b.id)  
+	GROUP BY b.`store_id`
+	</select>
+	
+	<select id="checkProductStatus" resultType="int">
+	SELECT 
+	  	COUNT(0) 
+	FROM
+		tbl_check_inventory a,
+	  	tbl_check_inventory_detail b
+	  	LEFT JOIN tbl_hq_product c ON b.`product_no` = c.`product_no`
+	WHERE 
+	  c.bar_code= #{productCode}
+	  AND a.id = b.check_id
+	  AND b.status=2
+	  AND a.store_id = #{storeId}
+	</select>
+	
+	<select id="checkProductClassify" resultType="int">
+	SELECT 
+	  	COUNT(0) 
+	FROM
+	  	tbl_hq_product a 
+	WHERE 
+	  a.product_no= #{barCode}
+	  AND a.classify_id = #{classifyId}
+	</select>
+
+	<select id="checkIsSmoke" resultType="int">
+		select count(0) from tbl_hq_product a
+		where a.bar_code= #{barCode}
+		and a.classify_id = #{classifyId};
+	</select>
+	<select id="checkIsSmoke2" resultType="int">
+		select count(0) from tbl_hq_product a
+		where a.product_no= #{barCode}
+		and a.classify_id = #{classifyId};
+	</select>
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.ivy.IvyWarehouseInventoryRatioMapper">
+
+    <sql id="Base_Column_List">
+        id, city_id, warehouse_id, warehouse_warning_ratio,
+        creator, updator, create_time, update_time
+    </sql>
+
+    <select id="getIvyWarehouseInventoryRatio" resultType="com.mallcai.bs.model.ivy.IvyWarehouseInventoryRatioDO">
+        select
+            <include refid="Base_Column_List"></include>
+        from  ivy_warehouse_inventory_ratio
+        <where>
+            1 = 1
+            <if test="value != null">
+                and warehouse_id = #{value,jdbcType=INTEGER}
+            </if>
+            and is_deleted = 0
+        </where>
+
+    </select>
+
+    <insert id="addWarehouseCityInventoryRatio"  useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ivy_warehouse_inventory_ratio (city_id,warehouse_id,warehouse_warning_ratio,creator,updator)
+        VALUES (#{cityId},#{warehouseId},#{warehouseWarningRatio},#{creator},#{updator})
+        ON DUPLICATE KEY UPDATE
+        warehouse_warning_ratio = #{warehouseWarningRatio},
+        updator = #{updator}
+    </insert>
+
+    <update id="updateWarehouseCityInventoryRatio" parameterType="com.mallcai.bs.model.ivy.IvyWarehouseInventoryRatioDO">
+        UPDATE ivy_warehouse_inventory_ratio
+        <set>
+            <if test="cityId != null">
+                city_id = #{cityId},
+            </if>
+            <if test="warehouseId != null">
+                warehouse_id = #{warehouseId},
+            </if>
+            <if test="warehouseWarningRatio != null">
+                warehouse_warning_ratio = #{warehouseWarningRatio},
+            </if>
+            <if test="updator != null">
+                updator = #{updator},
+            </if>
+        </set>
+        where  id = #{id}
+    </update>
+
+    <update id="delWarehouseCityInventoryRatio">
+        UPDATE ivy_warehouse_inventory_ratio
+         set is_deleted = 1
+        where  id = #{value}
+    </update>
+
+</mapper>

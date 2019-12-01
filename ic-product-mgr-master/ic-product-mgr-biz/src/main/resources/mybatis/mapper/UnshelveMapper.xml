@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.UnshelveMapper">
+
+    <select id="selectAll" resultType="UnshelveTask">
+        SELECT
+        t.id,
+        t.execute_time,
+        t.city_product_id,
+        t.product_no,
+        t.show_name,
+        t.city_id,
+        t.status,
+        t.create_time,
+        t.update_time
+        FROM tbl_unshelve_task t
+        WHERE t.del_flag = 1
+        <if test="cityId != null">
+            AND t.city_id = #{cityId}
+        </if>
+        <if test="from != null">
+            AND t.execute_time &gt;= #{from}
+        </if>
+        <if test="to != null">
+            AND t.execute_time &lt;= #{to}
+        </if>
+        <if test="status != null">
+            AND t.status = #{status}
+        </if>
+        <if test="taskName != null and taskName != ''">
+            AND (t.show_name like CONCAT('%',#{taskName},'%') OR t.product_no like CONCAT('%',#{taskName},'%'))
+        </if>
+        <choose>
+            <when test="sort != null and sort != ''">
+                ORDER BY ${sort} ${order}, t.product_no
+            </when>
+            <otherwise>
+                ORDER BY t.create_time DESC, t.product_no
+            </otherwise>
+        </choose>
+    </select>
+
+    <insert id="saveTask" parameterType="UnshelveTask" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO tbl_unshelve_task (execute_time, city_product_id, product_no, show_name, city_id, create_user_id)
+            VALUE (
+            #{executeTime},
+            #{cityProductId},
+            #{productNo},
+            #{showName},
+            #{cityId},
+            #{createUserId}
+        )
+    </insert>
+
+    <update id="delete">
+        UPDATE tbl_unshelve_task t
+        SET t.del_flag = 0
+        WHERE t.status = 0
+              AND t.del_flag = 1
+              AND t.id = #{id}
+    </update>
+
+    <update id="updateStatus" parameterType="UnshelveTask">
+        UPDATE tbl_unshelve_task t
+        <set>
+            t.status = #{status},
+            <if test="exception != null">
+                t.exception = #{exception}
+            </if>
+        </set>
+        WHERE t.del_flag = 1
+        AND t.id = #{id}
+    </update>
+
+    <update id="runTask" parameterType="UnshelveTask">
+        UPDATE tbl_city_product
+        SET
+            city_status = 2
+        WHERE
+            city_product_id = #{cityProductId};
+
+        DELETE FROM tbl_sales_spec
+        WHERE city_product_id = #{cityProductId}
+              AND store_id != 0;
+
+        DELETE FROM tbl_store_product_info
+        WHERE city_product_id = #{cityProductId};
+
+        DELETE FROM tbl_banner
+        WHERE banner_id = (
+            SELECT banner_id
+            FROM tbl_banner_pool
+            WHERE banner_product_id = #{cityProductId}
+                  AND banner_type = 1
+                  AND del_flag = 1
+            LIMIT 1
+        );
+
+        DELETE FROM tbl_banner_pool
+        WHERE banner_product_id = #{cityProductId}
+              AND banner_type = 1
+              AND del_flag = 1;
+
+        DELETE FROM tbl_ad
+        WHERE ad_id = (
+            SELECT ad_id
+            FROM tbl_ad_pool
+            WHERE ad_product_id = #{cityProductId}
+                  AND ad_type = 1
+                  AND del_flag = 1
+            LIMIT 1
+        );
+
+        DELETE FROM tbl_ad_pool
+        WHERE ad_product_id = #{cityProductId}
+              AND ad_type = 1
+              AND del_flag = 1;
+
+        DELETE FROM tbl_tile
+        WHERE tile_id = (
+            SELECT tile_id
+            FROM tbl_tile_pool
+            WHERE tile_product_id = #{cityProductId}
+                  AND tile_type = 1
+                  AND del_flag = 1
+            LIMIT 1
+        );
+
+        DELETE FROM tbl_tile_pool
+        WHERE tile_product_id = #{cityProductId}
+              AND tile_type = 1
+              AND del_flag = 1;
+
+        DELETE FROM tbl_headline
+        WHERE headline_id = (
+            SELECT headline_id
+            FROM tbl_headline_pool
+            WHERE headline_product_id = #{cityProductId}
+                  AND headline_type = 1
+                  AND del_flag = 1
+            LIMIT 1
+        );
+
+        DELETE FROM tbl_headline_pool
+        WHERE headline_product_id = #{cityProductId}
+              AND headline_type = 1
+              AND del_flag = 1;
+
+        DELETE FROM tbl_hp_product_list
+        WHERE city_product_id = #{cityProductId};
+
+        DELETE FROM tbl_banner
+        WHERE banner_id IN (
+            SELECT a.banner_id
+            FROM
+                tbl_banner_product_list a,
+                tbl_banner_product_list b
+            WHERE
+                a.banner_id = b.banner_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.banner_id
+            HAVING
+                count(1) = 1);
+
+        DELETE FROM tbl_banner_pool
+        WHERE banner_id IN (
+            SELECT a.banner_id
+            FROM
+                tbl_banner_product_list a,
+                tbl_banner_product_list b
+            WHERE
+                a.banner_id = b.banner_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.banner_id
+            HAVING
+                count(1) = 1)
+              AND banner_type = 2
+              AND del_flag = 1;
+
+        DELETE FROM tbl_banner_product_list
+        WHERE city_product_id = #{cityProductId};
+
+
+        DELETE FROM tbl_ad
+        WHERE ad_id IN (
+            SELECT a.ad_id
+            FROM
+                tbl_ad_product_list a,
+                tbl_ad_product_list b
+            WHERE
+                a.ad_id = b.ad_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.ad_id
+            HAVING
+                count(1) = 1);
+
+        DELETE FROM tbl_ad_pool
+        WHERE ad_id IN (
+            SELECT a.ad_id
+            FROM
+                tbl_ad_product_list a,
+                tbl_ad_product_list b
+            WHERE
+                a.ad_id = b.ad_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.ad_id
+            HAVING
+                count(1) = 1)
+              AND ad_type = 2
+              AND del_flag = 1;
+
+        DELETE FROM tbl_ad_product_list
+        WHERE city_product_id = #{cityProductId};
+
+        DELETE FROM tbl_tile
+        WHERE tile_id IN (
+            SELECT a.tile_id
+            FROM
+                tbl_tile_product_list a,
+                tbl_tile_product_list b
+            WHERE
+                a.tile_id = b.tile_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.tile_id
+            HAVING
+                count(1) = 1);
+
+        DELETE FROM tbl_tile_pool
+        WHERE tile_id IN (
+            SELECT a.tile_id
+            FROM
+                tbl_tile_product_list a,
+                tbl_tile_product_list b
+            WHERE
+                a.tile_id = b.tile_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.tile_id
+            HAVING
+                count(1) = 1)
+              AND tile_type IN (2, 5)
+              AND del_flag = 1;
+
+        DELETE FROM tbl_tile_product_list
+        WHERE city_product_id = #{cityProductId};
+
+        DELETE FROM tbl_headline
+        WHERE headline_id IN (
+            SELECT a.headline_id
+            FROM
+                tbl_headline_product_list a,
+                tbl_headline_product_list b
+            WHERE
+                a.headline_id = b.headline_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.headline_id
+            HAVING
+                count(1) = 1);
+
+        DELETE FROM tbl_headline_pool
+        WHERE headline_id IN (
+            SELECT a.headline_id
+            FROM
+                tbl_headline_product_list a,
+                tbl_headline_product_list b
+            WHERE
+                a.headline_id = b.headline_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.headline_id
+            HAVING
+                count(1) = 1)
+              AND headline_type = 2
+              AND del_flag = 1;
+
+        DELETE FROM tbl_headline_product_list
+        WHERE city_product_id = #{cityProductId};
+
+        DELETE FROM tbl_theme
+        WHERE theme_id IN (
+            SELECT a.theme_id
+            FROM
+                tbl_theme_product_list a,
+                tbl_theme_product_list b
+            WHERE
+                a.theme_id = b.theme_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.theme_id
+            HAVING
+                count(1) = 1);
+
+        DELETE FROM tbl_theme_pool
+        WHERE theme_id IN (
+            SELECT a.theme_id
+            FROM
+                tbl_theme_product_list a,
+                tbl_theme_product_list b
+            WHERE
+                a.theme_id = b.theme_id
+                AND a.del_flag = 1
+                AND b.city_product_id = #{cityProductId}
+                AND b.del_flag = 1
+            GROUP BY
+                a.theme_id
+            HAVING
+                count(1) = 1)
+              AND theme_type = 2
+              AND del_flag = 1;
+
+        DELETE FROM tbl_theme_product_list
+        WHERE city_product_id = #{cityProductId};
+    </update>
+    
+    <select id="getCityProductDeliveryMode" resultType="int" parameterType="int">
+        select delivery_mode
+        from tbl_city_product WHERE city_product_id = #{cityProductId}
+    </select>
+    
+    
+    
+    <select id="getStatus" resultType="UnshelveTask">
+		SELECT 
+			status 
+		FROM 
+			tbl_unshelve_task 
+		WHERE
+			id=#{taskId}
+	</select >
+
+    
+</mapper>

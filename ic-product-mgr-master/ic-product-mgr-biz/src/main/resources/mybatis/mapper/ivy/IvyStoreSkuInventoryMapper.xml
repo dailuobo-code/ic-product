@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.ivy.IvyStoreSkuInventoryMapper">
+
+    <sql id="Base_Column_List">
+        id, store_id, city_id,
+        marketing_inventory_id,city_product_id,available_num,lock_num,
+        creator, updator, create_time, update_time
+    </sql>
+    <update id="updateIVYStoreSkuInventory" parameterType="com.mallcai.bs.model.ivy.IvyStoreSkuInventoryDO">
+        update ivy_store_sku_inventory
+        <set>
+            <if test="lockNum != null">
+                lock_num = #{lockNum},
+            </if>
+            <if test="availableNum != null">
+                available_num = #{availableNum}
+            </if>
+        </set>
+        where marketing_inventory_id = #{marketingInventoryId}
+        <if test="id != null">
+            and id = #{id}
+        </if>
+    </update>
+
+    <select id="getStoreSkuInventory" resultType="com.mallcai.bs.model.ivy.IvyStoreSkuInventoryDO">
+        select
+            <include refid="Base_Column_List"></include>
+        from ivy_store_sku_inventory
+        <where>
+            1=1
+            <if test="cityProductId != null">
+                and city_product_id = #{cityProductId}
+            </if>
+            <if test="marketingInventoryId != null">
+                and marketing_inventory_id = #{marketingInventoryId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

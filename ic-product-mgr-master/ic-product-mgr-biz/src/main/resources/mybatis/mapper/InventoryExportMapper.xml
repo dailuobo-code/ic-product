@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.InventoryExportMapper">
+
+    <insert id="insertOne" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.dailuobo.api.domain.vo.InventoryExportVo">
+        insert into tbl_inventory_export(progress, `status`, user_id, filename, create_time, update_time)
+        values (#{progress}, #{status}, #{userId}, #{filename}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" parameterType="int" resultType="com.dailuobo.api.domain.vo.InventoryExportVo">
+        select id, progress, `status`, user_id, filename, download_url, create_time, update_time
+        from tbl_inventory_export where id = #{id}
+    </select>
+
+    <update id="updateById" parameterType="java.util.Map">
+        update tbl_inventory_export
+        <set>
+            <if test="export.status != null">
+                status = #{export.status},
+            </if>
+            <if test="export.downloadUrl != null and export.downloadUrl != ''">
+                download_url = #{export.downloadUrl},
+            </if>
+            <if test="export.updateTime != null">
+                update_time = #{export.updateTime},
+            </if>
+        </set>
+        where id = #{exportId}
+    </update>
+</mapper>

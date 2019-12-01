@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SOAClassifyMapper">
+	<select id="getProductClassifyRel" resultType="com.dailuobo.api.domain.soa.city.ProductClassifyRel">
+		SELECT tpc.classify_id,tpc.classify_no,tcp.city_id,tcp.city_product_id,tcp.create_time,
+		IF(tcp.update_time='0000-00-00 00:00:00',tcp.create_time,tcp.update_time) AS update_time
+		FROM tbl_product_classify tpc
+		JOIN tbl_hq_product thp ON tpc.classify_id = thp.classify_id
+		JOIN tbl_city_product tcp ON thp.hq_product_id = tcp.hq_product_id
+		WHERE tpc.del_flag = 1 AND thp.del_flag = 1 AND tcp.del_flag = 1 AND tcp.city_status=1
+		AND tpc.`level` = 2
+	</select>
+	<select id="getProductClassifyRelList" resultType="com.dailuobo.api.domain.soa.city.ProductClassifyRel">
+		SELECT tpc.classify_id,tpc.classify_no,tcp.city_id,tcp.city_product_id,tcp.create_time,
+		IF(tcp.update_time='0000-00-00 00:00:00',tcp.create_time,tcp.update_time) AS update_time
+		FROM tbl_product_classify tpc
+		JOIN tbl_hq_product thp ON tpc.classify_id = thp.classify_id
+		JOIN tbl_city_product tcp ON thp.hq_product_id = tcp.hq_product_id
+		WHERE tpc.del_flag = 1 AND thp.del_flag = 1 AND tcp.del_flag = 1 AND tcp.city_status=1
+		AND tpc.`level` = 2
+		and tpc.classify_id in (#{beforeClassifyId},#{afterClassifyId})
+		<if test="cityId!=null">
+			and tcp.city_id =#{cityId}
+		</if>
+	</select>
+
+
+
+	<select id="loadCityProductClassifyRel" resultType="com.dailuobo.api.domain.soa.city.ProductClassifyRel">
+		SELECT tpc.classify_id,tpc.classify_no,tcp.city_id,tcp.city_product_id,tcp.create_time,
+		IF(tcp.update_time='0000-00-00 00:00:00',tcp.create_time,tcp.update_time) AS update_time
+		FROM tbl_product_classify tpc
+		JOIN tbl_hq_product thp ON tpc.classify_id = thp.classify_id
+		JOIN tbl_city_product tcp ON thp.hq_product_id = tcp.hq_product_id
+		WHERE tcp.city_product_id =#{cityProductId} and tcp.city_id =#{cityId}
+	</select>
+
+
+	<select id="findCityProduct" resultType="com.dailuobo.api.domain.soa.city.ProductClassifyRel">
+		SELECT tcp.city_id,tcp.city_product_id,tcp.hq_product_id,tcp.create_time,
+		IF(tcp.update_time='0000-00-00 00:00:00',tcp.create_time,tcp.update_time) AS update_time
+		from tbl_city_product tcp
+		WHERE  tcp.del_flag = 1 AND tcp.city_status=1 and tcp.hq_product_id in
+
+
+
+		<foreach collection="hpProductIdList" item="hpProductId" separator=","
+				 open="(" close=");">
+			#{hpProductId}
+		</foreach>
+
+
+	</select>
+
+	<select id="findProductClassify" resultType="com.dailuobo.api.domain.soa.city.ProductClassifyRel">
+		SELECT tpc.classify_id,tpc.classify_no,thp.hq_product_id
+		FROM tbl_product_classify tpc
+		JOIN tbl_hq_product thp ON tpc.classify_id = thp.classify_id
+		WHERE tpc.del_flag = 1 AND thp.del_flag = 1
+		AND tpc.`level` = 2
+	</select>
+	
+	<select id="getClassifyByCityProductId" resultType="com.dailuobo.api.domain.soa.SOAHqProduct">
+   SELECT * FROM tbl_hq_product WHERE hq_product_id = 
+   (SELECT hq_product_id FROM tbl_city_product WHERE city_product_id = #{cityProductId})
+   </select>
+
+	<select id="getClassifyByCityProductIds" resultType="com.dailuobo.api.domain.soa.SOAHqProduct">
+		SELECT * FROM tbl_hq_product WHERE hq_product_id in (
+   (SELECT distinct(hq_product_id) FROM tbl_city_product WHERE city_product_id in
+   	<foreach collection="cityProductIds" item="cityProductId" open="(" separator="," close=")">
+		#{cityProductId}
+	</foreach>
+   ))
+	</select>
+</mapper>

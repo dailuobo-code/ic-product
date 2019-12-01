@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.HpProductMapper">
+    <select id="parentById" parameterType="int" resultMap="classifyMap">
+        SELECT
+            classify_id,
+            classify_name,
+            father_id
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id}
+    </select>
+
+    <resultMap type="Classify" id="classifyMap">
+        <association property="parent" column="father_id" select="parentById"/>
+    </resultMap>
+
+    <select id="classifyById" parameterType="int" resultMap="classifyMap">
+        SELECT
+            classify_id,
+            classify_name,
+            father_id
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id}
+    </select>
+
+    <resultMap type="HpProduct" id="hpProductMap">
+        <association property="classify" column="classify_id" select="classifyById"/>
+    </resultMap>
+
+    <!-- 查询首页商品列表 -->
+    <select id="selectAll" resultMap="hpProductMap" parameterType="map">
+        SELECT
+        t1.id,
+        t1.product_order,
+        t2.city_product_id,
+        t2.product_no,
+        t2.city_product_icon,
+        t3.hq_product_name,
+        t2.show_name,
+        t3.classify_id,
+        t2.advise_price,
+        t2.disable_price,
+        t1.create_user_id,
+        t4.real_name AS createUsername,
+        t1.create_time,
+        t1.update_user_id,
+        t5.real_name AS updateUsername,
+        t1.update_time,
+        t1.store_id,
+        t6.store_name
+        FROM
+        tbl_hp_product_list t1 LEFT JOIN tbl_user t4 ON t1.create_user_id = t4.user_id LEFT JOIN tbl_user t5 ON
+        t1.update_user_id = t5.user_id,
+        tbl_city_product t2,
+        tbl_hq_product t3,
+        tbl_store t6
+        WHERE
+        t1.city_product_id = t2.city_product_id
+        AND t2.hq_product_id = t3.hq_product_id
+        AND t1.store_id = t6.store_id
+        AND t1.del_flag = 1
+        AND t2.del_flag = 1
+        AND t3.del_flag = 1
+        AND t2.city_status = 1
+        AND t1.city_id = #{cityId}
+        <if test="storeId != null">
+            AND t1.store_id = #{storeId}
+        </if>
+        <if test="classifyId != null">
+            AND t3.classify_id = #{classifyId}
+        </if>
+        <if test="parentClassifyId != null">
+            AND t3.classify_id IN (SELECT classify_id FROM
+            tbl_product_classify WHERE father_id = #{parentClassifyId} AND
+            del_flag = 1)
+        </if>
+        <if test="productNo != null">
+            AND t2.product_no LIKE concat('%', #{productNo}, '%')
+        </if>
+        <if test="hqProductName != null">
+            AND t3.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="showName != null">
+            AND t2.show_name LIKE concat('%', #{showName}, '%')
+        </if>
+        ORDER BY t1.product_order ASC, t1.update_time DESC, t1.create_time DESC
+    </select>
+
+    <!-- 添加首页商品 -->
+    <insert id="add" parameterType="map">
+        INSERT IGNORE INTO tbl_hp_product_list(city_id, city_product_id,
+        create_user_id, store_id) VALUES
+        <foreach collection="hpProducts" item="hpProduct" separator="," close=";">
+            (#{hpProduct.cityId}, #{hpProduct.cityProductId},
+            #{hpProduct.createUserId}, #{hpProduct.storeId})
+        </foreach>
+    </insert>
+
+    <!-- 删除首页商品 -->
+    <update id="delete" parameterType="map">
+        DELETE FROM tbl_hp_product_list
+        WHERE id IN
+        <foreach collection="ids" open="(" close=");" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 更新首页显示排序号 -->
+    <update id="update" parameterType="HpProduct">
+        UPDATE tbl_hp_product_list
+        SET
+            product_order = #{productOrder}, update_user_id = #{updateUserId}
+        WHERE id = #{id}
+    </update>
+</mapper>

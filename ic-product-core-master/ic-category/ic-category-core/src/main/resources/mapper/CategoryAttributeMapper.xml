@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CategoryAttribute">
+    <resultMap id="CategoryAttributeMap" type="CategoryAttribute">
+        <id property="id" column="id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="group" column="group"/>
+        <result property="attrKey" column="attr_key"/>
+        <result property="attrMetasJson" column="attr_metas_json"/>
+        <result property="attrValsJson" column="attr_vals_json"/>
+        <result property="extraJson" column="extra_json"/>
+        <result property="index" column="index"/>
+        <result property="status" column="status"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatedBy" column="updated_by"/>
+    </resultMap>
+
+    <sql id="table_name">
+        ic_category_attribute
+    </sql>
+
+    <sql id="columns_all">
+        id,
+        <include refid="columns_exclude_id"/>
+    </sql>
+
+    <sql id="columns_exclude_id">
+        `category_id`, `group`, `attr_key`, `attr_metas_json`, `attr_vals_json`, `extra_json`, `index`, `status`,
+        `updated_by`, `created_by`, `update_time`, `create_time`
+    </sql>
+
+    <sql id="values_exclude_id">
+        #{categoryId}, #{group}, #{attrKey}, #{attrMetasJson}, #{attrValsJson}, #{extraJson}, #{index}, #{status},
+        #{updatedBy}, #{updatedBy}, now(), now()
+    </sql>
+
+    <sql id="criteria">
+        <where>
+            <if test="categoryId != null">AND `category_id` = #{categoryId}</if>
+            <if test="group != null">AND `group` = #{group}</if>
+            <if test="attrKey != null">AND `attr_key` = #{attrKey}</if>
+            <if test="attrMetasJson != null">AND `attr_metas_json` = #{attrMetasJson}</if>
+            <if test="attrValsJson != null">AND `attr_vals_json` = #{attrValsJson}</if>
+            <if test="extraJson != null">AND `extra_json` = #{extraJson}</if>
+            <if test="index != null">AND `index` = #{index}</if>
+            <if test="status != null">AND `status` = #{status}</if>
+            <if test="updatedBy != null">AND `updated_by` = #{updatedBy}</if>
+            <if test="createdBy != null">AND `created_by` = #{createdBy}</if>
+            <if test="createTime != null">AND <![CDATA[created_time >= #{createTime}]]> </if>
+            <if test="updateTime != null">AND <![CDATA[updated_time < #{updateTime}]]> </if>
+        </where>
+    </sql>
+
+    <insert id="create" parameterType="CategoryAttribute" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        (<include refid="values_exclude_id"/>)
+    </insert>
+
+    <insert id="creates" parameterType="CategoryAttribute" useGeneratedKeys="true">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        <foreach collection="list" item="i" index="index" separator=",">
+            (#{i.categoryId}, #{i.group}, #{i.attrKey}, #{i.attrMetasJson}, #{i.attrValsJson}, #{i.extraJson},
+            #{i.index}, #{i.status}, #{i.updatedBy}, #{i.updatedBy}, now(), now())
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="CategoryAttributeMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select id="findByIds" parameterType="list" resultMap="CategoryAttributeMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="update" parameterType="CategoryAttribute">
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            <if test="categoryId != null">`category_id` = #{categoryId},</if>
+            <if test="group != null">`group` = #{group},</if>
+            <if test="attrKey != null">`attr_key` = #{attrKey},</if>
+            <if test="attrMetasJson != null">`attr_metas_json` = #{attrMetasJson},</if>
+            <if test="attrValsJson != null">`attr_vals_json` = #{attrValsJson},</if>
+            <if test="extraJson != null">`extra_json` = #{extraJson},</if>
+            <if test="index != null">`index` = #{index},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="updatedBy != null">`updated_by` = #{updatedBy},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="long">
+        DELETE FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </delete>
+
+    <select id="count" parameterType="map" resultType="long">
+        SELECT COUNT(1)
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+    </select>
+
+    <select id="paging" parameterType="map" resultMap="CategoryAttributeMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+        ORDER BY `id` DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="list" parameterType="map" resultMap="CategoryAttributeMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+        ORDER BY `id` DESC
+    </select>
+
+    <select id="listByCategoryId" parameterType="long" resultMap="CategoryAttributeMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        where category_id=#{id}
+        ORDER BY `index`
+    </select>
+</mapper>

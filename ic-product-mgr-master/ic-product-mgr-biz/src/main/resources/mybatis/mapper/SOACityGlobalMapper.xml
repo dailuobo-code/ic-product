@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.SOACityGlobalMapper">
+
+    <sql id="cityProductColumns">
+		${alias}.point_mall_status as pointMallStatus,${alias}.point_price as pointPrice,IFNULL(${alias}.l1_l2_names,'') as l1L2Names,${alias}.city_product_id,${alias}.city_id,${alias}.hq_product_id,${alias}.hq_status,${alias}.city_status,${alias}.show_name,${alias}.disable_price,
+			${alias}.weight_unit,${alias}.num_unit,${alias}.origin,${alias}.advise_price,${alias}.remark,${alias}.city_product_icon,${alias}.city_product_pic,
+			${alias}.detail_url,${alias}.home_flag,${alias}.del_flag,${alias}.create_time,${alias}.update_time,${alias}.subtitle,${alias}.product_no,
+			CONCAT(IFNULL(${alias}.l1_l2_names,''),' ',IFNULL(${alias}.keyword, '')) AS keyword,
+			${alias}.icon_tip,${alias}.delivery_mode,${alias}.is_share,${alias}.new_user_pro,${alias}.goods_type,${alias}.merchant_id,${alias}.video_url
+	</sql>
+
+	<select id="getCityProductByCityId" resultType="com.dailuobo.api.domain.soa.city.CityProductDto" parameterType="int">
+		SELECT
+		<include refid="cityProductColumns">
+			<property name="alias" value="cp"/>
+		</include>, hq.is_standard
+		FROM
+			tbl_city_product cp, tbl_hq_product hq
+		WHERE
+			cp.city_id = #{cityId}
+		AND cp.hq_product_id = hq.hq_product_id
+		AND cp.del_flag = 1
+	</select>
+
+
+
+
+	
+	<select id="getProductByCityProductId" resultType="com.dailuobo.api.domain.soa.city.CityProductDto" parameterType="int">
+		SELECT
+			<include refid="cityProductColumns">
+                <property name="alias" value="cp"/>
+            </include>, hq.is_standard
+		FROM
+			tbl_city_product cp, tbl_hq_product hq
+		WHERE
+			cp.city_product_id = #{cityProductId}
+        AND cp.hq_product_id = hq.hq_product_id
+		AND cp.del_flag = 1
+	</select> 
+	
+	
+	<select id="getProductSpecByCityProductId" resultType="com.dailuobo.api.domain.soa.city.SalesSpecDto">
+		SELECT 
+			tss.spec_id,tss.city_product_id,tss.real_price,tss.avg_price,tss.avg_unit,tss.unit_type,
+			tss.spec_name,tss.status,tss.show_flag,tss.standard_flag,tss.del_flag,tss.create_time,
+			tss.update_time,tss.threshold,tss.package_max_weight,tss.change_flag,tss.package_quantity,
+			tss.store_id,tss.city_id,
+			CONCAT(tss.avg_price,'元/',tss.avg_unit) AS avg_price_detail,
+			CONCAT(tss.real_price,'元/份') AS real_price_detail,
+			CONCAT('约',tss.package_max_weight,cp.weight_unit) AS weight_detail,
+			CONCAT(tss.package_quantity,cp.num_unit) AS number_detail,
+			IFNULL(CASE WHEN spi.icon_tip = '' THEN null ELSE spi.icon_tip END,cp.icon_tip) AS icon_tip,
+			CONCAT(IFNULL(l1_l2_names,''),IFNULL(cp.keyword,''),IFNULL(spi.keyword,'')) AS keyword,
+			tss.vip_count
+			,salesAttr.spec_attribute_json  as specAttributeJson
+		FROM tbl_sales_spec tss JOIN tbl_city_product cp ON tss.city_product_id = cp.city_product_id
+			LEFT JOIN tbl_store_product_info spi ON tss.store_id = spi.store_id AND tss.city_product_id = spi.city_product_id
+			left JOIN ic_sales_spec_attribute salesAttr on cp.city_product_id = salesAttr.city_product_id
+		WHERE tss.city_product_id = #{cityProductId}
+			AND tss.del_flag = 1
+	</select>
+	
+	
+	
+		<select id="getCityStoreList" parameterType="int" resultType="com.mallcai.backend.common.dao.vo.StorageStore">
+		select
+			b.area_id,
+			b.area_name,
+			a.store_id,
+			a.store_name,
+			a.city_id,
+			a.employee_num,
+			a.address,
+			a.telephone,
+			a.manager,
+			a.status,
+			a.lon,
+			a.lat,
+			a.create_user_id,
+			a.create_time,
+			a.update_user_id,
+			a.update_time,
+			a.shelf_num,
+			a.del_flag,
+			a.store_pic,
+			a.remark,a.warehouse_id,
+			a.store_no,
+			a.show_pic
+		from tbl_store a
+		join tbl_city_area b
+		on a.area_id=b.area_id
+		where a.status=2 
+		  and a.del_flag =1 
+		  AND a.city_id=#{cityId}
+   </select>
+   
+   
+   	<select id="getAdvertsById" resultType="com.dailuobo.api.domain.soa.SOAAdverts">
+		SELECT ad_id,city_id,ad_name,ad_type,ad_product_id,ad_url_name,ad_url,ad_pic,memo,status
+		FROM tbl_ad_pool
+		WHERE del_flag = 1
+		AND ad_id = #{id}
+	</select>
+	
+		<select id="getAdvertsProductListById" resultType="com.dailuobo.api.domain.soa.SOAAdvertsProductList">
+		SELECT id,ad_id,city_product_id,ad_product_order
+		FROM tbl_ad_product_list
+		WHERE del_flag = 1
+		AND ad_id = #{adId}
+	</select>
+	
+	<select id="getHeadlineProductListByHeadlineId" resultType="com.dailuobo.api.domain.soa.SOAHeadlineProduct">
+		SELECT a.id,a.headline_id,a.city_product_id,a.headline_product_order,a.del_flag,a.create_time,a.update_time
+		FROM tbl_headline_product_list a
+		WHERE a.headline_id = #{headlineId}
+		AND a.del_flag = 1
+	</select>
+	
+	  <select id="getSysParam"  resultType="com.dailuobo.api.domain.soa.city.SystemParamDto">
+		SELECT *
+		FROM tbl_sys_param tsp
+	</select>
+	
+	<select id="getStoreAdverts" resultType="com.dailuobo.api.domain.soa.SOAStoreAdverts">
+		SELECT id,ad_id,city_id,store_id,ad_order
+		FROM tbl_ad
+		WHERE city_id = #{cityId} AND store_id = #{storeId} AND del_flag = 1
+		ORDER BY ad_order,id
+	</select>
+	
+	<select id="getEstableCity" resultType="com.mallcai.backend.common.dao.vo.StorageCity">
+		SELECT city_id,city_name,baidu_code,baidu_name,cai_code,provice,address,
+			   manager,status,open_date,employee_num,store_num,warehouse_num,
+			   logistics_num,phoneticize,
+			   telephone from tbl_city
+		 WHERE status=2
+   </select>
+
+	<select id="getCityLimit" parameterType="int" resultType="com.mallcai.backend.common.dao.vo.StorageCity">
+		SELECT address,baidu_code,baidu_name,cai_code,city_id,city_name,is_limit,phoneticize from tbl_city
+		WHERE status=2 and city_id=#{cityId}
+   </select>
+
+
+
+   
+   	<select id="getCityConfigList" parameterType="int" resultType="com.mallcai.backend.common.dao.vo.StorageCityConfig">
+		select city_id,config_name,config_value,store_id
+		from tbl_city_config
+		where city_id=#{cityId}
+		  and store_id = #{storeId}
+		  and del_flag=1
+   </select>
+   
+   
+      <select id="getById" parameterType="int" resultType="com.mallcai.backend.common.dao.vo.StorageStore">
+   		select
+			b.area_id,
+			b.area_name,
+			a.store_id,
+			a.store_name,
+			a.city_id,
+			a.employee_num,
+			a.address,
+			a.telephone,
+			a.manager,
+			a.status,
+			a.lon,
+			a.lat,
+			a.create_user_id,
+			a.create_time,
+			a.update_user_id,
+			a.update_time,
+			a.shelf_num,
+			a.del_flag,
+			a.store_pic,
+			a.remark,
+	   		a.warehouse_id,
+	   		a.store_no,
+	   		a.show_pic
+		from tbl_store a
+		join tbl_city_area b
+		on a.area_id=b.area_id
+		where 
+		  <!-- a.status=2 
+		  and --> a.del_flag =1 
+		  AND a.store_id=#{storeId}
+   </select>
+   
+   	<select id="getProductByCityHqProductId" resultType="com.dailuobo.api.domain.soa.city.CityProductDto" parameterType="int">
+		SELECT
+			<include refid="cityProductColumns">
+				<property name="alias" value="cp"/>
+			</include>, hq.is_standard
+		FROM
+			tbl_city_product cp, tbl_hq_product hq
+		WHERE
+			cp.hq_product_id = #{hqProductId}
+		AND cp.hq_product_id = hq.hq_product_id
+		AND cp.del_flag = 1
+	</select>
+	
+	
+		<select id="getProductSpecByHqProductId" resultType="com.dailuobo.api.domain.soa.city.SalesSpecDto">
+		SELECT 
+			tss.spec_id,tss.city_product_id,tss.real_price,tss.avg_price,tss.avg_unit,tss.unit_type,
+			tss.spec_name,tss.status,tss.show_flag,tss.standard_flag,tss.del_flag,tss.create_time,
+			tss.update_time,tss.threshold,tss.package_max_weight,tss.change_flag,tss.package_quantity,
+			tss.store_id,tss.city_id,
+			tss.vip_count,
+			CONCAT(tss.avg_price,'/',tss.avg_unit) AS avg_price_detail, 
+			CONCAT(tss.real_price,'元/份') AS real_price_detail,
+			CONCAT('约',tss.package_max_weight,cp.weight_unit) AS weight_detail,
+			CONCAT(tss.package_quantity,cp.num_unit) AS number_detail,
+			IFNULL(CASE WHEN spi.icon_tip = '' THEN null ELSE spi.icon_tip END,cp.icon_tip) AS icon_tip,
+			CONCAT(IFNULL(l1_l2_names,''),IFNULL(cp.keyword,''),IFNULL(spi.keyword,'')) AS keyword
+			,salesAttr.spec_attribute_json  as specAttributeJson
+		FROM tbl_sales_spec tss JOIN tbl_city_product cp ON tss.city_product_id = cp.city_product_id
+			LEFT JOIN tbl_store_product_info spi ON tss.store_id = spi.store_id AND tss.city_product_id = spi.city_product_id
+			left JOIN ic_sales_spec_attribute salesAttr on cp.city_product_id = salesAttr.city_product_id
+		WHERE cp.hq_product_id = #{hqProductId}
+			AND tss.del_flag = 1
+	</select>
+	
+		<select id="getAllProductIds" resultType="com.dailuobo.api.domain.soa.city.CityProductIds">
+		SELECT city_id,city_product_id AS productIds
+		FROM tbl_city_product 
+		WHERE hq_status = 1
+		AND city_status = 1
+		AND del_flag = 1
+		ORDER BY city_id,city_product_id
+	</select>
+	
+		<select id="getProductIdsByCityId" resultType="com.dailuobo.api.domain.soa.city.CityProductIds">
+		SELECT city_id,city_product_id AS productIds
+		FROM tbl_city_product 
+		WHERE hq_status = 1
+		AND city_status = 1
+		AND del_flag = 1
+		AND city_id = #{cityId}
+	</select>
+	
+	
+		<select id="getProductSpecByCityProductIds" resultType="com.dailuobo.api.domain.soa.city.SalesSpecDto">
+		SELECT 
+			tss.spec_id,tss.city_product_id,tss.real_price,tss.avg_price,tss.avg_unit,tss.unit_type,
+			tss.spec_name,tss.status,tss.show_flag,tss.standard_flag,tss.del_flag,tss.create_time,
+			tss.update_time,tss.threshold,tss.package_max_weight,tss.change_flag,tss.package_quantity,
+			tss.store_id,tss.city_id,
+			tss.vip_count,
+			CONCAT(tss.avg_price,'/',tss.avg_unit) AS avg_price_detail, 
+			CONCAT(tss.real_price,'元/份') AS real_price_detail,
+			CONCAT('约',tss.package_max_weight,cp.weight_unit) AS weight_detail,
+			CONCAT(tss.package_quantity,cp.num_unit) AS number_detail,
+			IFNULL(CASE WHEN spi.icon_tip = '' THEN null ELSE spi.icon_tip END,cp.icon_tip) AS icon_tip,
+			CONCAT(IFNULL(l1_l2_names,''),IFNULL(cp.keyword,''),IFNULL(spi.keyword,'')) AS keyword
+			,salesAttr.spec_attribute_json  as specAttributeJson
+		FROM tbl_sales_spec tss JOIN tbl_city_product cp ON tss.city_product_id = cp.city_product_id
+			LEFT JOIN tbl_store_product_info spi ON tss.store_id = spi.store_id AND tss.city_product_id = spi.city_product_id
+			left JOIN ic_sales_spec_attribute salesAttr on cp.city_product_id = salesAttr.city_product_id
+		WHERE tss.city_product_id IN
+		<foreach collection="cityProductIds" item="cityProductId"
+                         open="(" close=")" separator=",">
+                    #{cityProductId}
+        </foreach>
+			AND tss.del_flag = 1
+	</select>
+</mapper>

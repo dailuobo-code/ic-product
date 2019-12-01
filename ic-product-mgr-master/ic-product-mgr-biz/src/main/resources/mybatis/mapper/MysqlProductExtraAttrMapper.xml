@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MysqlProductExtraAttrMapper">
+
+    <sql id="columns">
+        id, <include refid="insertColumns"/>
+    </sql>
+
+    <sql id="insertColumns">
+		city_product_id, attr_type, attr_name, attr_value, attr_desc, create_user, create_time
+	</sql>
+
+    <resultMap id="ProductExtraAttrMap" type="com.mallcai.bs.domain.ProductExtraAttr">
+        <id property="id" column="id" />
+        <result property="cityProductId" column="city_product_id"/>
+        <result property="attrType" column="attr_type"/>
+        <result property="attrName" column="attr_name"/>
+        <result property="attrValue" column="attr_value"/>
+        <result property="attrDesc" column="attr_desc"/>
+        <result property="createUser" column="create_user"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectListByCityProductIds" resultMap="ProductExtraAttrMap">
+        SELECT
+        <include refid="columns"/>
+        FROM ic_product_extra_attr
+        WHERE city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId" open="(" close=")" separator=",">
+            #{cityProductId}
+        </foreach>
+        <if test="attrType != null">
+            AND attr_type = #{attrType}
+        </if>
+    </select>
+
+    <sql id="product_extra_attr_tpl">
+        select
+        <foreach collection="attrNames" item="attr" index="i">
+            <if test="i == 0">
+                ${attr}.city_product_id
+            </if>
+            , ${attr}.attr_value as ${attr}
+        </foreach> from
+        <foreach collection="attrNames" item="attr" separator=",">
+            (select city_product_id, attr_name, attr_value from ic_product_extra_attr where attr_name = '${attr}' and attr_type = #{attrType}) ${attr}
+        </foreach>
+    </sql>
+
+    <sql id="product_extra_attr_where">
+        <if test="attrNames.size() > 1">
+            <foreach collection="attrNames" item="attr" separator=" AND " index="i">
+                <if test="i != 0">
+                    ${attrNames.get(i - 1)}.city_product_id = ${attr}.city_product_id
+                </if>
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="insertBatch">
+        INSERT INTO ic_product_extra_attr (
+        <include refid="insertColumns"/>
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.cityProductId},
+            #{item.attrType},
+            #{item.attrName},
+            #{item.attrValue},
+            #{item.attrDesc},
+            #{item.createUser},
+            now()
+            )
+        </foreach>
+
+    </insert>
+
+    <update id="deleteByCityProductId">
+        INSERT INTO ic_product_extra_attr_his
+        (attr_id, <include refid="insertColumns"/>)
+        SELECT
+        <include refid="columns"/>
+        FROM ic_product_extra_attr
+        WHERE city_product_id = #{cityProductId}
+        AND attr_type = #{attrType};
+
+        DELETE FROM ic_product_extra_attr where city_product_id = #{cityProductId} AND attr_type = #{attrType};
+    </update>
+
+
+    <insert id="insertHisBatch">
+        INSERT INTO ic_product_extra_attr_his (
+        his_id,city_product_id, attr_type, attr_name, attr_value, attr_desc, create_user, create_time
+        ) values
+        <foreach collection="extraAttrs" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.cityProductId},
+            #{item.attrType},
+            #{item.attrName},
+            #{item.attrValue},
+            #{item.attrDesc},
+            #{item.createUser},
+            #{item.createTime},
+            )
+        </foreach>
+
+    </insert>
+
+</mapper>

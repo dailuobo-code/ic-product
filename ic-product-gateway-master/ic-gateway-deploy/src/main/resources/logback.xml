@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    <property name="level" value="${logLevel:-info}" />
+    <property name="the3rdLevel" value="${the3rdLevel:-WARN}" />
+    <!-- 定义日志的根目录 -->
+    <property name="LOG_HOME" value="/data/logs/app" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date %5level %6relative --- [%15thread] [%-40logger{40}] [%C:%L] : [%X{traceId:-0}] %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!-- 正常文件输出设置/data/logs/app/ic-gateway.log -->
+    <appender name="LogPlatformAppender" class="com.mallcai.framework.logback.appender.LogPlatformAppender">
+        <applicationName>ic-product-gateway</applicationName>
+    </appender>
+
+    <root level="${level}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LogPlatformAppender" />
+    </root>
+    <logger name="org.springframework" level="${level}" />
+    <logger name="com.alibaba" level="${level}" />
+    <logger name="org.apache" level="${level}" />
+
+</configuration>

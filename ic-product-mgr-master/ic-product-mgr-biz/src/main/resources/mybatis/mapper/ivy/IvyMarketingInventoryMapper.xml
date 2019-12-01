@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.ivy.IvyMarketingInventoryMapper">
+
+    <sql id="Base_Column_List">
+        id, warehouse_id, city_id, city_product_id,
+        marketing_num, available_num, lock_num, activity_num, presell_num, alarm_num,
+        creator, updator, create_time, update_time
+    </sql>
+
+    <select id="getIVYMarketingInventory" resultType="com.mallcai.bs.model.ivy.IvyMarketingInventoryDO">
+        select
+            <include refid="Base_Column_List"></include>
+        from ivy_marketing_inventory
+        <where>
+            1 = 1
+            <if test="cityId != null">
+                and city_id = #{cityId}
+            </if>
+            <if test="cityProductId != null">
+                and city_product_id = #{cityProductId}
+            </if>
+        </where>
+    </select>
+    <select id="selectByPrimaryKey" resultType="com.mallcai.bs.model.ivy.IvyMarketingInventoryDO">
+        select
+        <include refid="Base_Column_List"/>
+        from ivy_marketing_inventory where id = #{value}
+    </select>
+
+    <update id="updateIVYMarketingInventory">
+        update ivy_marketing_inventory
+        set marketing_num = #{marketingNum}
+        where id = #{id}
+    </update>
+
+    <update id="updateIVYMarketingInventoryAlarm">
+        update ivy_marketing_inventory
+        set
+        alarm_num = #{alarmNum}
+        where id = #{id}
+    </update>
+
+    <update id="updateIVYMarketingInventoryAvailable">
+        update ivy_marketing_inventory
+        set    available_num = #{availableNum}
+        where id = #{id}
+    </update>
+
+</mapper>

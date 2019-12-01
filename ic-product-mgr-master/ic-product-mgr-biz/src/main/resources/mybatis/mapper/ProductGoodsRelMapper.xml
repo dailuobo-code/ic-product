@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dailuobo.dao.mapper.ProductGoodsRelMapper">
+
+    <sql id="insertCols">
+        city_id,city_product_id,good_id,good_name,good_unit,rel_num,create_user_id,create_time,update_user_id,update_time,is_rel,keep_type,is_standard
+    </sql>
+
+    <sql id="allCols">
+        id, <include refid="insertCols"/>
+    </sql>
+
+    <resultMap id="ProductGoodsRelResultMap" type="com.dailuobo.ic.domain.dao.model.goods.ProductGoodsRelDO">
+        <id property="id" column="id" />
+        <result property="cityId" column="city_id"/>
+        <result property="cityProductId" column="city_product_id"/>
+        <result property="goodsId" column="good_id"/>
+        <result property="goodsName" column="good_name"/>
+        <result property="goodsUnit" column="good_unit"/>
+        <result property="relNum" column="rel_num"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="updateUserId" column="update_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isRel" column="is_rel"/>
+        <result property="keepType" column="keep_type"/>
+        <result property="isStandard" column="is_standard"/>
+    </resultMap>
+
+    <!-- 批量落库 -->
+    <insert id="batchSave" parameterType="com.dailuobo.ic.domain.dao.model.goods.ProductGoodsRelDO" useGeneratedKeys="true" keyProperty="id">
+        insert into ic_product_goods_rel (
+        <include refid="insertCols"/>
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.cityId},
+            #{item.cityProductId},
+            #{item.goodsId},
+            #{item.goodsName},
+            #{item.goodsUnit},
+            #{item.relNum},
+            #{item.createUserId},
+            now(),
+            #{item.updateUserId},
+            now(),
+            #{item.isRel},
+            #{item.keepType},
+            #{item.isStandard}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="del">
+        delete from ic_product_goods_rel
+        WHERE city_id = #{cityId}
+        AND id = #{id}
+    </delete>
+
+    <select id="queryById" resultMap="ProductGoodsRelResultMap">
+        SELECT
+        <include refid="allCols"/>
+        FROM ic_product_goods_rel
+        WHERE id = #{id}
+        AND city_id = #{cityId}
+    </select>
+
+    <select id="queryByCityProductId" resultMap="ProductGoodsRelResultMap">
+        SELECT
+        <include refid="allCols"/>
+        FROM ic_product_goods_rel
+        WHERE city_id = #{cityId}
+        AND city_product_id = #{cityProductId}
+        AND is_rel = 1
+    </select>
+
+    <select id="batchQueryByCityProductIds" resultMap="ProductGoodsRelResultMap">
+        SELECT
+        <include refid="allCols"/>
+        FROM ic_product_goods_rel
+        WHERE city_id = #{cityId}
+        AND city_product_id in
+        <foreach collection="cityProductIds" open="(" separator="," item="id" close=")">#{id}</foreach>
+        AND is_rel = 1
+    </select>
+
+
+    <select id="queryByGoodsNo" resultMap="ProductGoodsRelResultMap">
+        SELECT
+        <include refid="allCols"/>
+        FROM ic_product_goods_rel
+        WHERE city_id = #{cityId}
+        AND good_id = #{goodsNo}
+        AND is_rel = 1
+    </select>
+
+
+    <!-- 批量落库 -->
+    <insert id="batchSaveHis" parameterType="com.dailuobo.ic.domain.dao.model.goods.ProductGoodsRelDO" useGeneratedKeys="true" keyProperty="id">
+        insert into ic_product_goods_rel_his (
+        <include refid="allCols"/>
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.cityId},
+            #{item.cityProductId},
+            #{item.goodsId},
+            #{item.goodsName},
+            #{item.goodsUnit},
+            #{item.relNum},
+            #{item.createUserId},
+            #{item.createTime},
+            #{item.updateUserId},
+            now(),
+            #{item.isRel},
+            #{item.keepType},
+            #{item.isStandard}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

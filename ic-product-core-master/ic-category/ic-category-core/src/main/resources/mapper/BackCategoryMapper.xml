@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BackCategory">
+    <resultMap id="BackCategoryMap" type="BackCategory">
+        <id property="id" column="id"/>
+        <result property="pid" column="pid"/>
+        <result property="name" column="name"/>
+        <result property="level" column="level"/>
+        <result property="status" column="status"/>
+        <result property="hasChildren" column="has_children"/>
+        <result property="hasSpu" column="has_spu"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatedBy" column="updated_by"/>
+    </resultMap>
+
+    <sql id="table_name">
+        ic_back_category
+    </sql>
+
+    <sql id="columns_all">
+        id,
+        <include refid="columns_exclude_id"/>
+    </sql>
+
+    <sql id="columns_exclude_id">
+        `pid`, `name`, `level`, `status`, `has_children`, `has_spu`, `updated_by`, `created_by`, `update_time`, `create_time`
+    </sql>
+
+    <sql id="values_exclude_id">
+        #{pid}, #{name}, #{level}, #{status}, #{hasChildren}, #{hasSpu}, #{updatedBy}, #{updatedBy}, now(), now()
+    </sql>
+
+    <sql id="criteria">
+        <where>
+            <if test="pid != null">AND `pid` = #{pid}</if>
+            <if test="name != null">AND `name` = #{name}</if>
+            <if test="level != null">AND `level` = #{level}</if>
+            <if test="status != null">AND `status` = #{status}</if>
+            <if test="hasChildren != null">AND `has_children` = #{hasChildren}</if>
+            <if test="hasSpu != null">AND `has_spu` = #{hasSpu}</if>
+            <if test="updatedBy != null">AND `updated_by` = #{updatedBy}</if>
+        </where>
+    </sql>
+
+    <insert id="create" parameterType="BackCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        (<include refid="values_exclude_id"/>)
+    </insert>
+
+    <insert id="creates" parameterType="BackCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        <foreach collection="list" item="i" index="index" separator=",">
+            (#{i.pid}, #{i.name}, #{i.level}, #{i.status}, #{i.hasChildren}, #{i.hasSpu}, #{i.updatedBy}, #{i.updatedBy}, now(), now())
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="BackCategoryMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select id="findByIds" parameterType="list" resultMap="BackCategoryMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="update" parameterType="BackCategory">
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            <if test="pid != null">`pid` = #{pid},</if>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="level != null">`level` = #{level},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="hasChildren != null">`has_children` = #{hasChildren},</if>
+            <if test="hasSpu != null">`has_spu` = #{hasSpu},</if>
+            <if test="updatedBy != null">`updated_by` = #{updatedBy},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="long">
+        DELETE FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </delete>
+
+    <select id="count" parameterType="map" resultType="long">
+        SELECT COUNT(1)
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+    </select>
+
+    <select id="paging" parameterType="map" resultMap="BackCategoryMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+        ORDER BY `id` DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="list" parameterType="map" resultMap="BackCategoryMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <include refid="criteria"/>
+        ORDER BY `id` DESC
+    </select>
+
+    <select id="findByPid" parameterType="long" resultMap="BackCategoryMap">
+        select <include refid="columns_all"/>
+        from <include refid="table_name" />
+        where pid=#{pid}
+    </select>
+</mapper>

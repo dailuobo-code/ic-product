@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MultiBargainMapper">
+
+    <select id="selectAll" resultType="MultiBargainTask">
+        SELECT
+        t.id,
+        t.execute_time,
+        t.city_product_id,
+        t.product_no,
+        t.show_name,
+        t.city_id,
+        t.store_ids,
+        t.store_names,
+        t.icon_tip,
+        t.keyword,
+        t.avg_price,
+        t.real_price,
+        t.threshold_for_purchase,
+        t.status,
+        t.city_threshold,
+        t.create_time,
+        t.update_time,
+        t.create_user_id
+        FROM tbl_multi_bargain_task t
+        WHERE t.del_flag = 1
+        <if test="cityId != null">
+            AND t.city_id = #{cityId}
+        </if>
+        <if test="from != null">
+            AND t.execute_time &gt;= #{from}
+        </if>
+        <if test="to != null">
+            AND t.execute_time &lt;= #{to}
+        </if>
+        <if test="status != null">
+            AND t.status = #{status}
+        </if>
+        <if test="taskName != null and taskName != ''">
+            AND (t.show_name like CONCAT('%',#{taskName},'%') OR t.product_no like CONCAT('%',#{taskName},'%'))
+        </if>
+        <choose>
+            <when test="sort != null and sort != ''">
+                ORDER BY ${sort} ${order}, t.product_no
+            </when>
+            <otherwise>
+                ORDER BY t.create_time DESC, t.product_no
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectByExecuteTime" resultType="MultiBargainTask">
+        SELECT
+        t.id,
+        t.store_ids,
+        t.store_names,
+        s.sign_val
+        FROM tbl_multi_bargain_task t,tbl_product_sign s
+        where t.del_flag = 1 and s.is_del = 1 and s.multi_bargain_task_id = t.id
+        <if test="from != null">
+            AND s.effective_time &gt;= #{from}
+        </if>
+        <if test="to != null">
+            AND s.effective_time &lt;= #{to}
+        </if>
+    </select>
+
+    <select id="getEffectiveTaskMgr" resultType="MultiBargainTask">
+        SELECT t.store_ids,t.execute_time from tbl_multi_bargain_task_mgr t where t.city_product_id = #{cityProductId} and date_format(execute_time,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d') and status = 2
+    </select>
+
+    <select id="getEffectiveTask" resultType="MultiBargainTask">
+        SELECT t.store_ids,t.execute_time from tbl_multi_bargain_task t where t.city_product_id = #{cityProductId} and date_format(execute_time,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d') and status = 2
+    </select>
+
+    <select id="getNoExecuteTaskStoreIdsById" resultType="java.lang.String">
+        SELECT
+            t.store_ids
+        FROM
+            tbl_multi_bargain_task t
+        WHERE
+            t.`status` = 0
+            AND t.city_product_id = #{cityProductId}
+            AND t.del_flag = 1
+    </select>
+
+    <select id="getNoExecuteTaskStoreIdsByIdMgr" resultType="java.lang.String">
+        SELECT
+            t.store_ids
+        FROM
+            tbl_multi_bargain_task_mgr t
+        WHERE
+            t.`status` = 0
+            AND t.city_product_id = #{cityProductId}
+            AND t.del_flag = 1
+    </select>
+
+    <select id="selectByEffectTime" resultType="ActProductSign">
+        SELECT
+        s.multi_bargain_task_id,
+        s.sign_val
+        FROM tbl_product_sign s
+        where s.is_del = 1
+        <if test="from != null">
+            AND s.effective_time &gt;= #{from}
+        </if>
+        <if test="to != null">
+            AND s.effective_time &lt;= #{to}
+        </if>
+        <if test="cityProductId != null">
+            AND s.city_product_id = #{cityProductId}
+        </if>
+        <if test="cityProductIds != null and cityProductIds.size() > 0">
+            and s.city_product_id in
+            <foreach collection="cityProductIds" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <insert id="saveTask" parameterType="MultiBargainTask" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO tbl_multi_bargain_task (execute_time, city_product_id, product_no, show_name, city_id,city_threshold, store_ids, store_names, icon_tip, keyword, avg_price, real_price, threshold_for_purchase, create_user_id)
+            VALUE (
+            #{executeTime},
+            #{cityProductId},
+            #{productNo},
+            #{showName},
+            #{cityId},
+            #{cityThreshold},
+            #{storeIds},
+            #{storeNames},
+            #{iconTip},
+            #{keyword},
+            #{avgPrice},
+            #{realPrice},
+            #{thresholdForPurchase},
+            #{createUserId}
+        )
+    </insert>
+
+    <update id="delete">
+        UPDATE tbl_multi_bargain_task t
+        SET t.del_flag = 0
+        WHERE t.status = 0
+              AND t.del_flag = 1
+              AND t.id = #{id}
+    </update>
+
+    <update id="updateStatus" parameterType="MultiBargainTask">
+        UPDATE tbl_multi_bargain_task t
+        <set>
+            t.status = #{status},
+            <if test="exception != null">
+                t.exception = #{exception}
+            </if>
+        </set>
+        WHERE t.del_flag = 1
+        AND t.id = #{id}
+    </update>
+
+    <update id="runTask" parameterType="BargainTaskByMulti">
+        INSERT INTO tbl_store_product_info (city_product_id, store_id, keyword, icon_tip)
+            VALUE (#{cityProductId}, #{storeId}, #{keyword}, #{iconTip})
+        ON DUPLICATE KEY UPDATE
+            keyword  = #{keyword},
+            icon_tip = #{iconTip};
+
+        INSERT INTO tbl_sales_spec (city_product_id,
+                                    real_price,
+                                    avg_price,
+                                    avg_unit,
+                                    unit_type,
+                                    spec_name,
+                                    create_user_id,
+                                    threshold,
+                                    package_max_weight,
+                                    change_flag,
+                                    package_quantity,
+                                    store_id,
+                                    city_id,
+                                    vip_count,
+                                    vip_product_price)
+            SELECT
+                city_product_id,
+                #{realPrice},
+                #{avgPrice},
+                avg_unit,
+                unit_type,
+                spec_name,
+                #{createUserId},
+                #{thresholdForPurchase},
+                package_max_weight,
+                change_flag,
+                package_quantity,
+                #{storeId},
+                #{cityId},
+                vip_count,
+                vip_product_price
+            FROM tbl_sales_spec
+            WHERE city_product_id = #{cityProductId}
+                  AND store_id = 0
+        ON DUPLICATE KEY UPDATE
+            real_price     = #{realPrice},
+            avg_price      = #{avgPrice},
+            threshold      = #{thresholdForPurchase},
+            update_user_id = #{createUserId};
+    </update>
+    
+    
+    <select id="getStatus" resultType="MultiBargainTask">
+		SELECT 
+			status 
+		FROM 
+			tbl_multi_bargain_task 
+		WHERE
+			id=#{taskId} and del_flag=1
+	</select >
+	
+	<select id="checkProductSignByDateAndSKU" resultType="int">
+		SELECT count(0) 
+		FROM  tbl_product_sign  
+		WHERE 
+			sign_date=#{signDate} 
+		and city_product_id=#{cityProductId} 
+		and is_del=1
+		and city_id = #{cityId}
+	
+	</select>
+	
+	
+	<insert id="insertActProduct" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO tbl_product_sign (city_id, product_no, city_product_id, sign_val, sign_date,multi_bargain_task_id, create_user, create_time, is_del)
+		VALUES (#{cityId},#{productNo},#{cityProductId},#{signVal},#{signDate},#{multiBargainTaskId},#{createUser},NOW(),1);
+	</insert>
+
+    <update id="updateProductSignEffectiveTime">
+        UPDATE tbl_product_sign s set s.effective_time = NOW() where s.multi_bargain_task_id = #{multiBargainTaskId}
+    </update>
+
+    <update id="deleteProductSignByTaskIds">
+        UPDATE tbl_product_sign s set s.is_del = 0 where s.multi_bargain_task_id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+
+	<insert id="insertProductSignDetail">
+
+	 INSERT INTO tbl_product_sign_detail(sign_id,city_id,store_id)
+        VALUES 
+        <foreach collection="storeIds" item="storeId" separator=",">
+            (#{signId},#{cityId},#{storeId})
+        </foreach>
+	</insert>
+</mapper>

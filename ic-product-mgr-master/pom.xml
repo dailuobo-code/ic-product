@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.dailuobo.itemcenter</groupId>
+    <artifactId>ic-product-mgr</artifactId>
+    <version>1.7.7-RELEASE</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>ic-product-mgr-api</module>
+        <module>ic-product-mgr-biz</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <jstl.version>1.2</jstl.version>
+        <servlet.version>3.1.0</servlet.version>
+        <pagehelper.version>5.1.5</pagehelper.version>
+        <commons.net.version>3.4</commons.net.version>
+        <commons.fileupload.version>1.3.1</commons.fileupload.version>
+        <redisson.version>2.2.11</redisson.version>
+        <org.bouncycastle.version>1.54</org.bouncycastle.version>
+        <rocketmq-version>4.6.1-SNAPSHOT</rocketmq-version>
+        <com.alibaba.dubbo.version>2.7.2</com.alibaba.dubbo.version>
+        <org.spring.version>5.1.8.RELEASE</org.spring.version>
+        <javax.mail.version>1.4.6</javax.mail.version>
+        <com.taobao.taobao-sdk.version>1.0.0</com.taobao.taobao-sdk.version>
+        <jpush.client.api.version>3.2.9</jpush.client.api.version>
+        <org.mybatis.version>3.4.0</org.mybatis.version>
+        <org.mybatis-spring.version>1.3.0</org.mybatis-spring.version>
+        <mysql-connector-java.version>5.1.36</mysql-connector-java.version>
+        <com.alibaba.druid.version>1.1.10</com.alibaba.druid.version>
+        <org.slf4j.version>1.7.7</org.slf4j.version>
+        <httpclient.version>4.5.2</httpclient.version>
+        <ic.product.mgr.api.version>1.7.1-SNAPSHOT</ic.product.mgr.api.version>
+        <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
+    </properties>
+
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.mallcai.framework</groupId>
+                <artifactId>mallcai-common-util</artifactId>
+                <version>1.0.0-RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.dailuobo.itemcenter</groupId>
+                <artifactId>ic-product-mgr-api</artifactId>
+                <version>1.7.7-RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>1.23</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mallcai.framework</groupId>
+                <artifactId>mallcai-config-starter</artifactId>
+                <version>2.0.6-RELEASE</version>   <!-- 对应springboot 2.x -->
+            </dependency>
+
+            <dependency>
+                <groupId>org.mallcai</groupId>
+                <artifactId>app-city-api</artifactId>
+                <version>1.7.1-RELEASE</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.mallcai.backend.search</groupId>
+                        <artifactId>search-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mallcai.uc</groupId>
+                <artifactId>uc-api</artifactId>
+                <version>1.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <!-- JSTL -->
+            <dependency>
+                <groupId>jstl</groupId>
+                <artifactId>jstl</artifactId>
+                <version>${jstl.version}</version>
+            </dependency>
+
+            <!-- Spring -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>2.1.6.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jdbc</artifactId>
+                <version>2.1.6.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${org.spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${org.spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-expression</artifactId>
+                <version>${org.spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${org.spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+                <version>${org.spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${org.spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>${javax.mail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>2.8.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.taobao</groupId>
+                <artifactId>taobao-sdk</artifactId>
+                <version>${com.taobao.taobao-sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.jpush.api</groupId>
+                <artifactId>jpush-client</artifactId>
+                <version>${jpush.client.api.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>gson</artifactId>
+                        <groupId>com.google.code.gson</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <!-- MyBatis -->
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>${org.mybatis.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>${org.mybatis-spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>1.2.12</version>
+            </dependency>
+
+            <!-- MySQL -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java.version}</version>
+            </dependency>
+
+            <!-- Druid -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${com.alibaba.druid.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo</artifactId>
+                <version>${com.alibaba.dubbo.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>2.8.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-net</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>${commons.net.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${commons.fileupload.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-buffer</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-transport</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-handler</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>${org.bouncycastle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.stuxuhai</groupId>
+                <artifactId>jpinyin</artifactId>
+                <version>1.1.7</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>3.17</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>3.17</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>4.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>dom4j</groupId>
+                <artifactId>dom4j</artifactId>
+                <version>1.6.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jaxen</groupId>
+                <artifactId>jaxen</artifactId>
+                <version>1.1.4</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>httpclient</artifactId>
+                <groupId>org.apache.httpcomponents</groupId>
+                <version>${httpclient.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>3.20.0-GA</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.16.18</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq-version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${org.spring.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-core</artifactId>
+                <version>1.3.2</version>
+                <scope>test</scope>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.mallcai</groupId>
+                <artifactId>elastic-job-lite-core</artifactId>
+                <version>3.4.0-releases</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>curator-client</artifactId>
+                        <groupId>org.apache.curator</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>curator-framework</artifactId>
+                        <groupId>org.apache.curator</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>curator-recipes</artifactId>
+                        <groupId>org.apache.curator</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.quartz-scheduler</groupId>
+                        <artifactId>quartz</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mallcai</groupId>
+                <artifactId>elastic-job-lite-spring</artifactId>
+                <version>3.4.0-releases</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mallcai</groupId>
+                <artifactId>app-inventory-api</artifactId>
+                <version>2.0.1-RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>2.3.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.zaxxer</groupId>
+                        <artifactId>HikariCP-java6</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.mallcai.engine</groupId>
+                <artifactId>engine-api</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mallcai.framework</groupId>
+                <artifactId>mallcai-logback-appender</artifactId>
+                <version>1.1.0-RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mallcai.backend</groupId>
+                <artifactId>backend-common</artifactId>
+                <version>1.2.0-RELEASE</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.dubbo</groupId>
+                        <artifactId>dubbo-spring-boot-starter</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.rocketmq</groupId>
+                        <artifactId>rocketmq-spring-boot-starter</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.mybatis.spring.boot</groupId>
+                        <artifactId>mybatis-spring-boot-starter</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>javax.servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.mallcai.framework</groupId>
+                <artifactId>mallcai-logback-appender</artifactId>
+                <version>1.2.0-RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>1.0.0.GA</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>4.2.0.Final</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mallcai.product</groupId>
+                <artifactId>mallcai-product-api</artifactId>
+                <version>1.7.4-RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mallcai.backend</groupId>
+                <artifactId>backend-common-framework</artifactId>
+                <version>1.3.0-RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${org.mapstruct.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- 添加此插件以便启动jetty -->
+            <!-- <plugin> <groupId>org.mortbay.jetty</groupId> <artifactId>jetty-maven-plugin</artifactId>
+                <version>8.1.16.v20140903</version> <configuration> <encoding>UTF-8</encoding>
+                <scanIntervalSeconds>10</scanIntervalSeconds> </configuration> </plugin> -->
+
+            <!-- 添加此插件以便启动tomcat -->
+            <!-- <plugin> <groupId>org.apache.tomcat.maven</groupId> <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version> <configuration> <url>http://localhost:8080/manager/text</url>
+                <username>admin</username> <password>tomcat</password> <uriEncoding>UTF-8</uriEncoding>
+                </configuration> </plugin> -->
+
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <encoding>utf-8</encoding>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${org.mapstruct.version}</version>
+                        </path>
+                        <!-- other annotation processors -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.4</version>
+                        </path>
+                    </annotationProcessorPaths>
+
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.3.2</version>
+                <configuration>
+                    <!-- mybatis用于生成代码的配置文件 -->
+                    <configurationFile>src/test/resources/mybatis/generatorConfig.xml</configurationFile>
+                    <verbose>true</verbose>
+                    <overwrite>true</overwrite>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>Nexus Release Repository</name>
+            <url>http://maven.caicaivip.com/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Nexus Snapshot Repository</name>
+            <url>http://maven.caicaivip.com/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>public</id>
+            <name>public</name>
+            <url>http://maven.caicaivip.com/nexus/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+</project>

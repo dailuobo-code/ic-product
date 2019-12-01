@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dailuobo.dao.mapper.ProductGroupMapper">
+    <select id="listAllGroupItems" resultType="com.dailuobo.ic.domain.dao.model.product.ProductGroupItemDO">
+        select * from ic_city_product_group_items
+        where deleted=0 and city_id = #{cityId}
+    </select>
+
+
+    <select id="listProductAttributes" resultType="com.dailuobo.ic.dto.spec.ProductAttributeDTO">
+        select * from ic_sales_spec_attribute
+        where
+        city_id =#{cityId}
+        and
+        city_product_id
+        in
+        <foreach collection="list" item="item" close=")" separator="," open="(">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="insertProductAttr" useGeneratedKeys="true">
+        insert into ic_sales_spec_attribute(city_id,city_product_id,spec_attribute_json)
+        values
+            (#{cityId},#{cityProductId},#{specAttributeJson})
+            ON DUPLICATE KEY UPDATE
+            spec_attribute_json=#{specAttributeJson}
+    </insert>
+
+</mapper>

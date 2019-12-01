@@ -1,0 +1,1498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.CityProductMapper">
+    <select id="parentById" parameterType="int" resultMap="classifyMap">
+        SELECT *
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id} AND del_flag = 1
+    </select>
+
+    <resultMap type="Classify" id="classifyMap">
+        <association property="parent" column="father_id" select="parentById"/>
+    </resultMap>
+
+    <select id="classifyById" parameterType="int" resultMap="classifyMap">
+        SELECT *
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id} AND del_flag = 1
+    </select>
+
+    <resultMap id="cityProductMap" type="com.dailuobo.api.domain.entity.CityProduct">
+        <id property="cityProductId" column="city_product_id"/>
+        <result property="delta" column="adjustment_factor"/>
+        <result property="isGoodsRel" column="is_goods_rel"/>
+        <association property="classify" column="classify_id"
+                     select="classifyById"/>
+    </resultMap>
+
+    <select id="selectHqAll" resultMap="cityProductMap"
+            parameterType="map">
+        select * from tbl_hq_product t1
+        <!-- 已获取 -->
+        <if test="status == 1">
+            , tbl_city_product t2
+        </if>
+        <!-- 全部或者未获取 -->
+        <if test="status != 1">
+            left join (select * from tbl_city_product where del_flag = 1
+            <if test="cityId != null">
+                and city_id = #{cityId}
+            </if>
+            ) t2 on t1.hq_product_id = t2.hq_product_id
+        </if>
+        <where>
+            t1.del_flag = 1
+            and t1.status = 1
+            <if test="status == 1">
+                and t2.del_flag = 1
+                <if test="cityId != null">
+                    and t2.city_id = #{cityId}
+                </if>
+                and t1.hq_product_id =
+                t2.hq_product_id
+            </if>
+            <if test="status == 0">
+                and t1.hq_product_id not in (select hq_product_id from
+                tbl_city_product where city_id = #{cityId} and del_flag = 1)
+            </if>
+            <if test="classifyId != null">
+                and t1.classify_id = #{classifyId}
+            </if>
+            <if test="parentClassifyId != null">
+                and t1.classify_id in (select classify_id from
+                tbl_product_classify where father_id = #{parentClassifyId})
+            </if>
+            <if test="productNo != null">
+                and t1.product_no like concat('%', #{productNo}, '%')
+            </if>
+            <if test="hqProductName != null">
+                and t1.hq_product_name like concat('%', #{hqProductName}, '%')
+            </if>
+            <if test="goodsType!=null">
+                and t1.goods_type = #{goodsType}
+            </if>
+            and t1.item_id = 0
+        </where>
+        order by t1.product_no
+    </select>
+
+    <update id="localize" parameterType="map">
+        insert into tbl_city_product(hq_product_id, product_no, show_name,bar_code, city_id,
+        hq_status,
+        city_product_icon, city_product_pic, remark,
+        create_user_id, delivery_mode,keep_type,quality_time,`length`,wide,high,goods_type,merchant_id,
+        is_forecast,new_arrival_type,seasonal
+        <if test="isShare != null">
+            ,is_share
+        </if>
+        )
+        select hq_product_id, product_no, hq_product_name,bar_code,
+        #{cityId}, status,
+        hq_product_icon, hq_product_pic,
+        remark,
+        #{userId},
+        delivery_mode,
+        keep_type,
+        quality_time,
+        `length`,
+        wide,
+        high,
+        goods_type,
+        #{merchantId},
+        is_forecast,
+        new_arrival_type,
+        seasonal
+        <if test="isShare != null">
+            ,#{isShare}
+        </if>
+        from
+        tbl_hq_product
+        <where>
+            del_flag = 1 and
+            hq_product_id in
+            <foreach collection="hqProductIds" separator="," item="hqProductId" open="("
+                     close=");">
+                #{hqProductId}
+            </foreach>
+        </where>
+
+        update tbl_hq_product set localize_flag = 1, update_user_id =
+        #{userId}
+        <where>
+            del_flag = 1 and hq_product_id in
+            <foreach collection="hqProductIds" separator="," item="hqProductId" open="("
+                     close=");">#{hqProductId}
+            </foreach>
+        </where>
+    </update>
+
+    <insert id="localizeHqProduct" parameterType="list" keyProperty="cityProductId" useGeneratedKeys="true">
+        insert into tbl_city_product(hq_product_id, product_no, show_name,bar_code, city_id,hq_status,
+        city_product_icon, city_product_pic, remark,create_user_id, delivery_mode,keep_type,
+        quality_time,`length`,wide,high,goods_type,merchant_id,
+        is_forecast,new_arrival_type,seasonal,is_share
+        )values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.hqProductId},#{item.productNo},#{item.hqProductName},#{item.barCode},#{item.cityId},#{item.status},
+            #{item.hqProductIcon},#{item.hqProductPic},#{item.remark},#{item.userId},#{item.deliveryMode},#{item.keepType},
+            #{item.qualityTime},#{item.length},#{item.wide},#{item.high},#{item.goodsType},#{item.merchantId},
+            #{item.isForecast},#{item.newArrivalType},#{item.seasonal},#{item.isShare}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectLocalizeHqProduct" resultType="HqProductLocalize">
+        select hq_product_id, product_no, hq_product_name,bar_code,
+        status,
+        hq_product_icon, hq_product_pic,
+        remark,
+        delivery_mode,
+        keep_type,
+        quality_time,
+        `length`,
+        wide,
+        high,
+        goods_type,
+        is_forecast,
+        new_arrival_type,
+        seasonal
+        from
+        tbl_hq_product
+        <where>
+            del_flag = 1 and
+            hq_product_id in
+            <foreach collection="hqProductIds" separator="," item="hqProductId" open="("
+                     close=");">
+                #{hqProductId}
+            </foreach>
+        </where>
+    </select>
+
+    <update id="updateLocalizeProductFlag" parameterType="map">
+        update tbl_hq_product set localize_flag = 1, update_user_id =
+        #{userId}
+        <where>
+            del_flag = 1 and hq_product_id in
+            <foreach collection="hqProductIds" separator="," item="hqProductId" open="("
+                     close=");">#{hqProductId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 历史实现多表查询* -->
+    <select id="selectAll" resultMap="cityProductMap" parameterType="map">
+        select t1.*,t2.*,t3.*,t4.*,t1.wide AS wides, t5.merchant_rate,
+        case
+        when t6.is_rel = 1 then 1
+        else 0
+        end as is_goods_rel
+        from tbl_city_product t1
+        LEFT JOIN tbl_hq_product t2
+        ON t1.product_no = t2.product_no
+        LEFT JOIN tbl_sales_spec t3
+        ON t1.city_product_id = t3.city_product_id AND t3.store_id = 0
+        LEFT JOIN tbl_product_adjustment t4
+        ON t1.city_product_id = t4.city_product_id AND t4.store_id = 0
+        LEFT JOIN ic_merchant_prod_attr t5
+        ON t1.city_product_id = t5.city_product_id
+        LEFT JOIN ic_product_goods_rel t6
+        ON (t1.city_product_id = t6.city_product_id and t1.city_id = t6.city_id)
+        <where>
+            t1.del_flag = 1
+            <if test="merchantIdList != null and merchantIdList.size() > 0">
+                and t1.merchant_id in
+                <foreach collection="merchantIdList" item="merchantId"
+                         open="(" close=")" separator=",">
+                    #{merchantId}
+                </foreach>
+            </if>
+            <if test="queryMerchantId != null">
+                and t1.merchant_id = #{queryMerchantId}
+            </if>
+            <if test="cityId != null">
+                and t1.city_id = #{cityId}
+            </if>
+            <if test="isShare != null">
+                and t1.is_share = #{isShare}
+            </if>
+            <if test="isNew != null">
+                and t1.new_user_pro = #{isNew}
+            </if>
+            <if test="isUnd != null">
+                and t1.is_under = #{isUnd}
+            </if>
+            <if test="isPointSearch != null">
+                and t1.point_mall_status = #{isPointSearch}
+            </if>
+            <if test="deliveryMode != null">
+                and t1.delivery_mode = #{deliveryMode}
+            </if>
+            and t2.del_flag =1
+            and t1.hq_product_id =
+            t2.hq_product_id
+            <!-- 待上架：运营中心上架，城市运营中心待上架 -->
+            <if test="currentStatus == 0">
+                and t1.city_status = 0
+                and t1.hq_status = 1
+            </if>
+            <!-- 已上架：运营中心上架，城市运营中心上架 -->
+            <if test="currentStatus == 1">
+                and t1.city_status = 1
+                and t1.hq_status = 1
+            </if>
+            <!-- 已下架但可上架：运营中心上架，城市运营中心下架 -->
+            <if test="currentStatus == 2">
+                and t1.city_status = 2
+                and t1.hq_status = 1
+            </if>
+            <!-- 已下架且不可上架：运营中心下架 -->
+            <if test="currentStatus == 3">
+                and t1.hq_status = 0
+            </if>
+            <if test="classifyId != null">
+                and t2.classify_id = #{classifyId}
+            </if>
+            <if test="parentClassifyId != null">
+                and t2.classify_id in (select classify_id from
+                tbl_product_classify where father_id = #{parentClassifyId})
+            </if>
+            <if test="productNo != null">
+                and t2.product_no like concat('%', #{productNo}, '%')
+            </if>
+            <if test="hqProductName != null">
+                and t2.hq_product_name like concat('%', #{hqProductName}, '%')
+            </if>
+            <if test="showName != null">
+                and t1.show_name like concat('%', #{showName}, '%')
+            </if>
+            <if test="isforeCast!=null">
+                and t1.is_forecast=#{isforeCast}
+            </if>
+            <if test="newArrivalType!=null">
+                and t1.new_arrival_type=#{newArrivalType}
+            </if>
+            <if test="seasonal!=null">
+                and t1.seasonal=#{seasonal}
+            </if>
+            <if test="cityProductIds != null">
+                and t1.city_product_id in
+                <foreach collection="cityProductIds" item="cityProductId"
+                         open="(" close=")" separator=",">
+                    #{cityProductId}
+                </foreach>
+            </if>
+            <if test="goodsType != null">
+                and t1.goods_type = #{goodsType}
+            </if>
+            <if test="isGoodsRel == 1">
+                and t6.is_rel= #{isGoodsRel}
+            </if>
+            <if test="isGoodsRel == 0">
+                and (t6.is_rel = #{isGoodsRel} or t6.is_rel is null)
+            </if>
+        </where>
+        order by t1.product_no
+    </select>
+
+    <select id="existBarCode" resultType="int" parameterType="CityProduct">
+        SELECT COUNT(1)
+        FROM (SELECT * FROM `tbl_city_product` WHERE city_product_id != #{cityProductId}) t1
+        WHERE t1.bar_code = #{barCode}
+        AND del_flag=1
+        LIMIT 1
+    </select>
+
+    <update id="update" parameterType="CityProduct">
+        <if test="numUnit != null">
+            UPDATE tbl_sales_spec SET avg_unit = (CASE WHEN unit_type = 1 THEN avg_unit ELSE #{numUnit} END)
+            WHERE city_product_id = #{cityProductId} AND del_flag = 1;
+        </if>
+
+        update tbl_city_product
+        <set>
+            <if test="showName != null">
+                show_name = #{showName},
+            </if>
+            <if test="barCode != null">
+                bar_code = #{barCode},
+            </if>
+            <if test="weightUnit != null">
+                weight_unit = #{weightUnit},
+            </if>
+            <if test="numUnit != null">
+                num_unit = #{numUnit},
+            </if>
+            <if test="origin != null">
+                origin = #{origin},
+            </if>
+            <if test="advisePrice != null">
+                advise_price = #{advisePrice},
+            </if>
+            <if test="disablePrice != null">
+                disable_price = #{disablePrice},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="cityProductIcon != null">
+                city_product_icon = #{cityProductIcon},
+            </if>
+            <if test="cityProductPic != null">
+                city_product_pic = #{cityProductPic},
+            </if>
+            <if test="detailUrl != null">
+                detail_url = #{detailUrl},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="subtitle != null">
+                subtitle = #{subtitle},
+            </if>
+            <if test="keyword != null">
+                keyword = #{keyword},
+            </if>
+            <if test="iconTip != null">
+                icon_tip = #{iconTip},
+            </if>
+            <if test="l1L2Names != null">
+                l1_l2_names = #{l1L2Names},
+            </if>
+            <if test="newUserPro != null">
+                new_user_pro = #{newUserPro},
+            </if>
+            <if test="length!=null and length!=''">
+                `length`=#{length},
+            </if>
+            <if test="wides!=null and wides!=''">
+                `wide`=#{wides},
+            </if>
+            <if test="high!=null and high!=''">
+                `high`=#{high},
+            </if>
+            <if test="goodsType != null">
+                goods_type = #{goodsType},
+            </if>
+            <if test="newArrivalType != null">
+                new_arrival_type = #{newArrivalType},
+            </if>
+            <if test="seasonal != null">
+                seasonal = #{seasonal},
+            </if>
+            <if test="videoUrl != null">
+                video_url = #{videoUrl},
+            </if>
+        </set>
+        where city_product_id = #{cityProductId} and del_flag = 1
+    </update>
+
+
+    <update id="updateByhqProductId" parameterType="CityProduct">
+
+        UPDATE tbl_city_product
+        <trim prefix="set" suffixOverrides=",">
+            <if test="l1L2Names != null and l1L2Names != ''">
+                l1_l2_names = #{l1L2Names},
+            </if>
+            <if test="barCode!=null and barCode!='' ">
+                bar_code =#{barCode},
+            </if>
+            <if test="val != null">
+                keep_type = #{keepType,jdbcType=INTEGER},
+            </if>
+            <if test="qualityTime != null">
+                quality_time = #{qualityTime,jdbcType=INTEGER},
+            </if>
+            <if test="deliveryMode != null">
+                delivery_mode = #{deliveryMode,jdbcType=INTEGER},
+            </if>
+        </trim>
+        WHERE hq_product_id = #{hqProductId}
+    </update>
+
+
+    <update id="up" parameterType="map">
+        UPDATE tbl_city_product
+        SET
+            city_status    = 1,
+            disable_price  = #{disablePrice},
+            update_user_id = #{updateUserId}
+        WHERE
+            city_product_id = #{cityProductId}
+    </update>
+
+    <update id="down">
+        UPDATE tbl_city_product
+        SET
+            city_status    = 2,
+            point_mall_status = 0,
+            update_user_id = #{userId}
+        WHERE
+            city_product_id = #{cityProductId};
+    </update>
+
+    <select id="getShowNames" parameterType="map" resultType="string">
+        SELECT show_name FROM tbl_city_product WHERE del_flag = 1
+        AND city_id = #{cityId}
+        AND city_status = 1
+        AND show_name LIKE concat('%', #{showName}, '%')
+        AND hq_product_id IN (
+        SELECT hq_product_id FROM tbl_hq_product WHERE del_flag = 1
+        <if test="c2Id != null">
+            AND classify_id = #{c2Id}
+        </if>
+        <if test="c1Id != null">
+            AND classify_id IN (
+            SELECT classify_id FROM tbl_product_classify WHERE del_flag = 1
+            AND father_id = #{c1Id}
+            )
+        </if>
+        )
+    </select>
+
+    <select id="getOfflineTACityProductsV2" resultType="com.dailuobo.api.domain.vo.TACityProduct">
+        SELECT
+        t.city_product_id,
+        t.show_name,
+        t.product_no,
+        t.icon_tip,
+        t.keyword,
+        s.avg_price,
+        s.real_price,
+        s.change_flag,
+        s.package_max_weight,
+        s.package_quantity,
+        t.weight_unit,
+        t.num_unit,
+        s.avg_unit,
+        t.delivery_mode
+        FROM tbl_city_product t,
+        und_sales_spec s
+        WHERE t.city_product_id = s.city_product_id
+        AND s.store_id = 0
+        AND t.city_id = #{cityId}
+        AND (t.show_name LIKE CONCAT('%', #{keyword}, '%') OR t.product_no LIKE CONCAT('%', #{keyword}, '%'))
+        and t.is_under = 1
+        ORDER BY t.product_no
+    </select>
+
+    <select id="getOfflineTACityProductList" resultType="com.dailuobo.api.domain.vo.OfflineProductInventory">
+        SELECT
+        DISTINCT t.city_product_id,
+        t.show_name,
+        t.product_no
+        FROM tbl_city_product t,
+        tbl_hq_product t3,
+        tbl_product_classify t4
+        WHERE t.hq_product_id = t3.hq_product_id
+        AND t3.classify_id = t4.classify_id
+        AND t.city_id = #{cityId}
+        <if test="keyword != null and keyword != ''">
+            AND (t.show_name LIKE CONCAT('%', #{keyword}, '%') OR t.product_no LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="productNo != null and productNo != ''">
+            and t.product_no = #{productNo}
+        </if>
+        and t.is_under = 1
+        and t4.classify_id = #{smokeClassifyId}
+        ORDER BY t.product_no
+    </select>
+
+    <select id="getDDLCityProducts" parameterType="map" resultType="DDLCityProduct">
+        SELECT city_product_id, show_name FROM tbl_city_product WHERE del_flag = 1
+        AND city_id = #{cityId}
+        AND city_status = 1
+        AND show_name LIKE concat('%', #{showName}, '%')
+        AND hq_product_id IN (
+        SELECT hq_product_id FROM tbl_hq_product WHERE del_flag = 1
+        <if test="c2Id != null">
+            AND classify_id = #{c2Id}
+        </if>
+        <if test="c1Id != null">
+            AND classify_id IN (
+            SELECT classify_id FROM tbl_product_classify WHERE del_flag = 1
+            AND father_id = #{c1Id}
+            )
+        </if>
+        )
+    </select>
+
+    <select id="getTACityProducts" resultType="TACityProduct">
+        SELECT
+            t.city_product_id,
+            t.show_name,
+            t.product_no,
+            t.icon_tip,
+            t.keyword,
+            s.avg_price,
+            s.real_price,
+            s.change_flag,
+            s.package_max_weight,
+            s.package_quantity,
+            t.weight_unit,
+            t.num_unit,
+            s.avg_unit,
+            t.delivery_mode
+        FROM tbl_city_product t,
+            tbl_sales_spec s
+        WHERE t.city_product_id = s.city_product_id
+              AND s.store_id = 0
+              AND t.city_id = #{cityId}
+        ORDER BY t.product_no
+    </select>
+
+    <select id="getTACityProductsV2" resultType="TACityProduct">
+        SELECT
+            t.city_product_id,
+            t.show_name,
+            t.product_no,
+            t.icon_tip,
+            t.keyword,
+            s.avg_price,
+            s.real_price,
+            s.change_flag,
+            s.package_max_weight,
+            s.package_quantity,
+            t.weight_unit,
+            t.num_unit,
+            s.avg_unit,
+            t.delivery_mode,
+            t.disable_price
+        FROM tbl_city_product t,
+            tbl_sales_spec s
+        WHERE t.city_product_id = s.city_product_id
+              AND s.store_id = 0
+              AND t.city_id = #{cityId}
+              AND (t.show_name LIKE CONCAT('%', #{keyword}, '%') OR t.product_no LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY t.product_no
+    </select>
+
+    <select id="getTACityProductsV3" resultType="TACityProduct">
+        SELECT
+            t.city_product_id,
+            t.show_name,
+            t.product_no,
+            t.icon_tip,
+            t.keyword,
+            s.avg_price,
+            s.real_price,
+            s.change_flag,
+            s.package_max_weight,
+            s.package_quantity,
+            t.weight_unit,
+            t.num_unit,
+            s.avg_unit,
+            t.delivery_mode,
+            t.disable_price
+        FROM tbl_city_product t,
+            tbl_sales_spec s
+        WHERE t.city_product_id = s.city_product_id
+              AND s.store_id = 0
+              and t.merchant_id = 0
+              AND t.city_id = #{cityId}
+              AND (t.show_name LIKE CONCAT('%', #{keyword}, '%') OR t.product_no LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY t.product_no
+    </select>
+
+    <select id="getTACityProductsByKeyWord" resultType="TACityProduct">
+        SELECT
+        t.city_product_id,
+        t.show_name,
+        t.product_no,
+        t.icon_tip,
+        t.keyword,
+        s.avg_price,
+        s.real_price,
+        s.change_flag,
+        s.package_max_weight,
+        s.package_quantity,
+        t.weight_unit,
+        t.num_unit,
+        s.avg_unit,
+        t.delivery_mode,
+        t.disable_price
+        FROM tbl_city_product t,
+        tbl_sales_spec s,
+        tbl_hq_product q
+        WHERE t.city_product_id = s.city_product_id
+        AND s.store_id = 0
+        AND t.city_id = #{cityId}
+        AND (t.show_name LIKE CONCAT('%', #{keyword}, '%') OR t.product_no LIKE CONCAT('%', #{keyword}, '%'))
+        <if test="queryStandard !=null and queryStandard == 1">
+            and q.hq_product_id = t.hq_product_id
+            and q.is_standard = 1
+        </if>
+        <if test="queryShare !=null and queryShare == 1">
+            and t.is_share = 1
+        </if>
+        ORDER BY t.product_no
+    </select>
+
+    <select id="getTACityProductsGift" resultType="TACityProduct">
+        SELECT
+            t.city_product_id,
+            t.show_name,
+            t.product_no,
+            t.icon_tip,
+            t.keyword,
+            s.avg_price,
+            s.real_price,
+            s.change_flag,
+            s.package_max_weight,
+            s.package_quantity,
+            t.weight_unit,
+            t.num_unit,
+            s.avg_unit,
+            t.delivery_mode
+        FROM tbl_city_product t,
+            tbl_sales_spec s
+        WHERE t.city_product_id = s.city_product_id
+              AND s.store_id = 0
+              AND t.city_id = #{cityId}
+              AND t.show_name LIKE '%赠%'
+        ORDER BY t.product_no
+    </select>
+    <update id="updateDefaultSpec">
+        UPDATE tbl_city_product
+        SET
+            disable_price  = #{disablePrice},
+            update_user_id = #{updateUserId}
+        WHERE
+            city_product_id = #{cityProductId}
+    </update>
+    <update id="newUserPro">
+            UPDATE tbl_city_product
+        SET
+            new_user_pro  = #{newUserPro},
+            update_user_id = #{updateUserId},
+            icon_tip = #{iconTip}
+            
+        WHERE
+            city_product_id = #{cityProductId} and city_id = #{cityId}
+    </update>
+
+    <update id="isUnder">
+            UPDATE tbl_city_product
+        SET
+            is_under  = #{isUnder},
+            update_user_id = #{updateUserId}
+            
+        WHERE
+            city_product_id = #{cityProductId} and city_id = #{cityId}
+    </update>
+
+    <update id="underProduct">
+            UPDATE tbl_city_product
+        SET
+            is_under = 1,
+            update_user_id = #{updateUserId}
+        WHERE
+            city_product_id = #{cityProductId}
+    </update>
+
+    <select id="getMsgList" resultType="TACityProduct">
+        SELECT
+        tcp.product_no,
+        tcp.show_name,
+        tcp.product_no AS projectCode,
+        (CASE tss.unit_type
+        WHEN '1' THEN '计重'
+        WHEN '2' THEN '定价'
+        ELSE '其他' END) AS unitType,
+        (CASE keep_type
+        when '1' THEN '常温'
+        WHEN '2' THEN '冷藏'
+        WHEN '3' THEN '冷冻'
+        ELSE '' END) AS keepType,
+        IFNULL((SELECT name FROM tbl_sys_code WHERE type = 'sys_quality_time' AND val = tcp.quality_time) ,"")
+        qualityTime
+        FROM
+        tbl_city_product tcp,
+        tbl_sales_spec tss
+        WHERE
+        tcp.city_product_id = tss.city_product_id
+        and tss.store_id = 0 <!-- and tcp.keep_type is not null -->
+    </select>
+
+    <select id="getMsgListByCityId" resultType="TACityProduct" parameterType="OpenCity">
+        SELECT
+	    tcp.city_id,
+        tcp.product_no,
+        tcp.show_name,
+        tcp.product_no AS projectCode,
+        tcc.sale_name AS saleName,
+        (CASE tss.unit_type
+        WHEN '1' THEN '计重'
+        WHEN '2' THEN '定价'
+        ELSE '其他' END) AS unitType,
+        (CASE keep_type
+        WHEN '1' THEN '常温'
+        WHEN '2' THEN '冷藏'
+        WHEN '3' THEN '冷冻'
+        ELSE '' END) AS keepType,
+        IFNULL((SELECT NAME FROM tbl_sys_code WHERE TYPE = 'sys_quality_time' AND val = tcp.quality_time) ,"") qualityTime
+        FROM
+        tbl_city_product tcp,
+        tbl_sales_spec tss,
+        tbl_city tcc
+        WHERE
+        tcp.city_product_id = tss.city_product_id
+        AND tss.store_id = 0
+        AND tcp.city_id=#{cityId}
+        AND tcp.city_id=tcc.city_id
+    </select>
+
+    <select id="selectCityProductIds" parameterType="list" resultType="java.lang.Integer">
+        SELECT
+        city_product_id
+        FROM
+        tbl_city_product
+        WHERE
+        status = 1
+        and hq_product_id in
+        <foreach collection="hpProductIds" item="hpProductId"
+                 open="(" close=")" separator=",">
+            #{hpProductId}
+        </foreach>
+    </select>
+
+    <update id="vipLimit">
+        UPDATE tbl_city_product
+        SET
+        vip_limit = #{cityProduct.vipLimit},
+        <if test="isMultiBargain == false">
+            last_vip_limit = #{cityProduct.vipLimit},
+        </if>
+        update_user_id = #{cityProduct.updateUserId}
+        WHERE
+        city_product_id = #{cityProduct.cityProductId} and city_id = #{cityProduct.cityId}
+    </update>
+
+    <select id="queryOfflineProducts" resultType="com.dailuobo.api.domain.vo.OfflineProductInventory">
+        SELECT
+        tcp.city_product_id,
+        tcp.show_name,
+        tcp.product_no
+        FROM
+        tbl_city_product tcp
+        WHERE
+        tcp.city_id = #{cityId}
+        AND tcp.del_flag = 1
+        AND tcp.is_under = 1
+        and tcp.city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId"
+                 open="(" close=")" separator=",">
+            #{cityProductId}
+        </foreach>
+        ORDER BY
+        tcp.city_product_id DESC
+    </select>
+
+    <select id="queryInventoryProducts" resultType="com.dailuobo.api.domain.vo.OfflineProductInventory">
+        select city_product_id,available
+        from und_marketing_inventory
+        where del_flag = 1
+        and store_id =#{storeId}
+        and city_product_id = #{cityProductId}
+    </select>
+
+    <select id="getOpenCity" resultType="OpenCity">
+        SELECT
+          city_id AS cityId,
+          city_name AS cityName
+        FROM
+          tbl_city
+        WHERE
+          STATUS=2;
+    </select>
+
+    <select id="selectStcokProduct" resultType="com.dailuobo.api.domain.entity.StockProduct" parameterType="map">
+        SELECT a.city_product_id AS cityProductId,a.create_time AS createTime ,c.product_no AS productNo,
+        d.real_name AS createUserName,c.show_name AS showName
+        FROM tbl_clean_inventory_product a, tbl_city_product c ,tbl_user d
+        WHERE a.city_product_id = c.city_product_id
+        AND a.create_user_id = d.user_id
+        AND a.del_flag = 1
+        <if test="cityProductId != null and cityProductId != ''">AND a.city_product_id = #{cityProductId}</if>
+        <if test="cityId != null and cityId != ''">AND a.city_id = #{cityId}</if>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <insert id="addProduct" parameterType="java.util.List">
+        INSERT INTO tbl_clean_inventory_product (city_id,city_product_id,create_user_id,create_time,del_flag)
+        VALUES
+        <foreach collection="list" item="produlist" separator=",">
+            (#{produlist.cityId} ,#{produlist.cityProductId},#{produlist.createUserId},now(),1)
+        </foreach>
+    </insert>
+
+
+    <update id="deleteProduct" parameterType="map">
+        UPDATE tbl_clean_inventory_product
+        SET
+        del_flag = 0,
+        update_user_id = #{updateUserId},
+        update_time = now()
+        WHERE
+        city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId" open="(" close=")" separator=",">
+            #{cityProductId}
+        </foreach>
+    </update>
+
+    <select id="findStockProductByID" resultType="int" parameterType="int">
+        SELECT
+          count(1)
+        FROM
+          tbl_clean_inventory_product
+        WHERE
+          del_flag=1
+          and city_product_id = #{cityProductId}
+    </select>
+
+
+    <select id="selectCityProductNos" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        SELECT distinct (product_no) product_no FROM tbl_city_product where del_flag =1 and city_id = #{cityId};
+    </select>
+
+    <select id="selectCityProductList" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        SELECT product_no, city_id, city_product_id FROM tbl_city_product where del_flag =1 and city_id = #{cityId};
+    </select>
+
+
+    <select id="selectCityProductNosList" resultType="com.dailuobo.api.domain.entity.CityProduct" parameterType="map">
+        SELECT product_no, city_id, city_product_id FROM tbl_city_product where
+        del_flag =1
+        and hq_product_id in
+        <foreach collection="hqProductIds" item="hqProductId"
+                 open="(" close=")" separator=",">
+            #{hqProductId}
+        </foreach>
+        and city_id=#{cityId}
+        ORDER BY
+        city_product_id DESC
+    </select>
+
+    <select id="getCountProductByProductNo" resultType="int" parameterType="Map">
+       SELECT tcp.city_id as cityIds  FROM tbl_city_product tcp
+        where product_no=#{productNo} and tcp.city_id = #{cityId}
+    </select>
+
+
+    <insert id="cityProductCopyOtherCity" parameterType="com.dailuobo.api.domain.entity.CityProductSyncCity"
+            keyProperty="cityProductId" useGeneratedKeys="true">
+        insert into tbl_city_product( hq_product_id, product_no, hq_status, city_status,
+        show_name, disable_price, weight_unit, num_unit, origin, advise_price, remark,
+        subtitle, keyword, icon_tip, l1_l2_names, delivery_mode, city_product_icon,
+        city_product_pic, detail_url, home_flag, del_flag,
+        purchase_factor, is_share, new_user_pro, is_under,
+        bar_code, keep_type, vip_limit, quality_time, `length`, wide, high, create_user_id, create_time,goods_type,city_id,
+        is_forecast,new_arrival_type,seasonal,video_url)
+        values(#{hqProductId},#{productNo},#{hqStatus},#{cityStatus},
+        #{showName},#{disablePrice},#{weightUnit},#{numUnit},#{origin},#{advisePrice},#{remark},
+        #{subtitle},#{keyword},#{iconTip},#{l1L2Names},#{deliveryMode},#{cityProductIcon},
+        #{cityProductPic},#{detailUrl},#{homeFlag},#{delFlag},
+        #{purchaseFactor},#{isShare},#{newUserPro},#{isUnder},
+        #{barCode},#{keepType},#{vipLimit},#{qualityTime},#{length},#{wides},#{high},#{userId},now(),#{goodsType},#{cityId},
+        #{isForecast},#{newArrivalType},#{seasonal},#{videoUrl})
+    </insert>
+
+    <sql id="cols_city_product">
+        city_product_id,city_id,hq_product_id,product_no,hq_status,city_status,show_name,disable_price,weight_unit,num_unit,
+        origin,advise_price,remark,subtitle,keyword,icon_tip,l1_l2_names,delivery_mode,city_product_icon,city_product_pic,
+        detail_url,home_flag,del_flag,create_user_id,create_time,update_user_id,update_time,purchase_factor,is_share,new_user_pro,
+        is_under,bar_code,keep_type,vip_limit,quality_time,length,wide,high,goods_type,point_price,point_mall_status,last_vip_limit,
+        merchant_id,is_forecast,new_arrival_type,seasonal,video_url
+    </sql>
+
+    <select id="getCityProductById" resultType="com.dailuobo.api.domain.entity.CityProductSyncCity" parameterType="Map">
+        SELECT<include refid="cols_city_product"/>,wide as wides
+        FROM tbl_city_product
+        where city_product_id = #{cityProductId}
+    </select>
+
+
+    <update id="updateProductByUpdateCityIds" parameterType="com.dailuobo.api.domain.entity.CityProductSyncCity">
+
+        update tbl_city_product
+        <set>
+            <if test="showName != null">
+                show_name = #{showName},
+            </if>
+            <if test="barCode != null">
+                bar_code = #{barCode},
+            </if>
+            <if test="weightUnit != null">
+                weight_unit = #{weightUnit},
+            </if>
+            <if test="numUnit != null">
+                num_unit = #{numUnit},
+            </if>
+            <if test="origin != null">
+                origin = #{origin},
+            </if>
+            <if test="advisePrice != null">
+                advise_price = #{advisePrice},
+            </if>
+            <if test="disablePrice != null">
+                disable_price = #{disablePrice},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="cityProductIcon != null">
+                city_product_icon = #{cityProductIcon},
+            </if>
+            <if test="cityProductPic != null">
+                city_product_pic = #{cityProductPic},
+            </if>
+            <if test="detailUrl != null">
+                detail_url = #{detailUrl},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="subtitle != null">
+                subtitle = #{subtitle},
+            </if>
+            <if test="keyword != null">
+                keyword = #{keyword},
+            </if>
+            <if test="iconTip != null">
+                icon_tip = #{iconTip},
+            </if>
+            <if test="l1L2Names != null">
+                l1_l2_names = #{l1L2Names},
+            </if>
+            <if test="newUserPro != null">
+                new_user_pro = #{newUserPro},
+            </if>
+            <if test="length!=null and length!=''">
+                `length`=#{length},
+            </if>
+            <if test="wides!=null and wides!=''">
+                `wide`=#{wides},
+            </if>
+            <if test="high!=null and high!=''">
+                `high`=#{high},
+            </if>
+            <if test="newArrivalType!=null">
+                `new_arrival_type`=#{newArrivalType},
+            </if>
+            <if test="seasonal!=null">
+                `seasonal`=#{seasonal},
+            </if>
+            <if test="videoUrl!=null">
+                `video_url`=#{videoUrl},
+            </if>
+            update_user_id = #{userId},
+            update_time= now()
+        </set>
+        where product_no = #{productNoNew} and city_id = #{cityId};
+    </update>
+
+    <select id="selectAllProductNo" resultMap="cityProductMap" parameterType="map">
+        select product_no from tbl_city_product t1
+        <where>
+            t1.del_flag = 1
+            <if test="cityId != null">
+                and t1.city_id = #{cityId}
+            </if>
+            <!-- 已上架：运营中心上架，城市运营中心上架 -->
+            <if test="currentStatus == 1">
+                and t1.city_status = 1
+            </if>
+        </where>
+        order by t1.product_no
+    </select>
+
+
+    <select id="selectAllCityProductIds" parameterType="map" resultType="java.lang.String">
+        SELECT
+        group_concat(city_product_id) as cityProductIds
+        FROM
+        tbl_city_product
+        WHERE
+        city_id =#{cityId}
+        and product_no in
+        <foreach collection="productNos" item="productNo"
+                 open="(" close=")" separator=",">
+            #{productNo}
+        </foreach>
+    </select>
+    <select id="selectCityProductByIdList" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        select
+        t1.city_product_id,t1.city_id,t1.hq_product_id,t1.product_no,t1.show_name,t1.city_product_icon,
+        t2.hq_product_name,t1.l1_l2_names
+        from tbl_city_product t1
+        join tbl_hq_product t2 on t1.hq_product_id = t2. hq_product_id
+
+        where city_product_id in
+        <foreach collection="cityProductIdList" separator="," item="cityProductId" open="("
+                 close=");">
+            #{cityProductId}
+        </foreach>
+    </select>
+
+
+    <update id="pointProduct">
+        update tbl_city_product c
+        <set>
+            c.point_mall_status = 1,
+            c.point_price = #{pointPrice},
+            c.update_user_id = #{userId},
+            c.update_time = now()
+        </set>
+        <where>
+            c.city_product_id = #{cityProductId}
+        </where>
+    </update>
+
+    <update id="isPoint">
+        update tbl_city_product c
+        <set>
+            c.point_mall_status = #{pointMallStatus},
+            c.point_price = 0,
+            c.update_user_id = #{cityProductId},
+            c.update_time = now()
+        </set>
+        <where>
+            c.city_product_id = #{cityProductId}
+        </where>
+    </update>
+
+    <select id="checkStandardProduct" resultType="int">
+
+        select is_standard from tbl_hq_product where product_no = #{productNo}
+    </select>
+
+
+    <select id="selectCityProductListByCityProductIds" resultMap="cityProductMap">
+        select
+        t1.city_product_id,t1.is_share,t2.is_standard,t1.city_id
+        from tbl_city_product t1
+        inner join tbl_hq_product t2 on t1.hq_product_id = t2.hq_product_id
+        where t2.del_flag =1 and t1.del_flag =1
+        and t1.city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId" open="(" close=")" separator=",">
+            #{cityProductId}
+        </foreach>
+    </select>
+
+    <update id="updateL1L2NamesByHqProductIds">
+        UPDATE tbl_city_product
+        SET l1_l2_names=#{l1l2Names}
+        WHERE hq_product_id IN
+        <foreach collection="hpProductIds" item="hqProductId" open="(" close=")" separator=",">
+            #{hqProductId}
+        </foreach>
+    </update>
+
+    <select id="findByHqProductIds" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        SELECT city_id, city_product_id, is_under FROM tbl_city_product where
+        del_flag =1
+        and hq_product_id in
+        <foreach collection="hqProductIds" item="hqProductId"
+                 open="(" close=")" separator=",">
+            #{hqProductId}
+        </foreach>
+    </select>
+
+    <update id="batchUp">
+        update tbl_city_product
+        set
+        city_status = 1,
+        update_user_id = #{userId}
+        where
+        city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId" open="(" separator="," close=")">
+            #{cityProductId}
+        </foreach>
+    </update>
+
+    <update id="batchDown">
+        UPDATE tbl_city_product
+        SET
+        city_status = 2,
+        point_mall_status = 0,
+        update_user_id = #{userId}
+        WHERE
+        city_product_id IN
+        <foreach collection="cityProductIds" open="(" close=")" separator="," item="cityProductId">
+            #{cityProductId}
+        </foreach>;
+    </update>
+
+    <select id="selectCityProductListByProductNos" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        select
+        city_id,hq_product_id,product_no,del_flag,city_status,city_product_id
+        from tbl_city_product where city_id=#{cityId} AND product_no in
+        <foreach collection="productNos" open="(" close=")" separator="," item="productNo">
+            #{productNo}
+        </foreach>
+    </select>
+
+    <insert id="saveImportProductUpLog" parameterType="map">
+        <foreach collection="list" item="item">
+            INSERT INTO tbl_import_upproduct
+            (product_no,city_product_id,avg_price,unit_type,threshold,package_max_weight,package_quantity,vip_count,create_user_id,create_time)
+            values
+            (#{item.productNo},#{item.cityProductId},#{item.avgPrice},
+            #{item.unitType},0,#{item.packageMaxWeight},#{item.packageQuantity},#{item.vipCount},#{createuser},now());
+        </foreach>
+    </insert>
+
+    <select id="selectCityProductByCityProductIds" resultMap="cityProductMap">
+        select
+        t1.city_product_id,t1.product_no,t1.city_status,t1.del_flag
+        from tbl_city_product t1
+        where t1.city_product_id in
+        <foreach collection="cityProductIds" item="cityProductId" open="(" close=")" separator=",">
+            #{cityProductId}
+        </foreach>
+    </select>
+
+    <select id="getByCityIdAndProductNo" resultType="com.dailuobo.api.domain.entity.CityProductSyncCity"
+            parameterType="Map">
+        SELECT<include refid="cols_city_product"/>,wide AS wides
+        FROM tbl_city_product
+        WHERE city_id = #{cityId} AND product_no = #{productNo}
+    </select>
+
+
+    <select id="getCityProductList" resultType="com.dailuobo.api.domain.vo.CityProductVo"
+            parameterType="Map">
+        select
+        t1.city_product_id,t1.city_id,t1.hq_product_id,t1.product_no,t1.show_name,t1.city_product_icon,
+        t2.hq_product_name,t1.l1_l2_names
+        from tbl_city_product t1
+        join tbl_hq_product t2 on t1.hq_product_id = t2. hq_product_id
+        WHERE t1.city_id = #{cityId}
+        <if test="productNo!=null">
+            AND t1.product_no like concat('%', #{productNo},'%')
+        </if>
+        <if test="productName !=null">
+            and t1.product_name like concat('%', #{productName},'%')
+        </if>
+        <if test="cityProductIdList!=null">
+            city_product_id
+            <foreach collection="cityProductIdList" close=")" open="(" separator="," item="item">
+                #{item}
+            </foreach>
+
+        </if>
+    </select>
+    <select id="loadCityProduct" resultType="com.dailuobo.api.domain.vo.CityProductVo"
+            parameterType="Map">
+        select
+        t1.city_product_id,t1.city_id,t1.hq_product_id,t1.product_no,t1.show_name,t1.city_product_icon,
+        t2.hq_product_name,t1.l1_l2_names,t1.city_status,t2.status as hq_status
+        from tbl_city_product t1
+        join tbl_hq_product t2 on t1.hq_product_id = t2. hq_product_id
+
+        where
+        t1.city_id = #{cityId}
+        <if test="cityProductId!=null">
+            and city_product_id =#{cityProductId}
+        </if>
+        <if test="productNo!=null">
+            AND t1.product_no =#{productNo}
+        </if>
+
+    </select>
+
+    <update id="cityProductForecastFlagChange">
+        update tbl_city_product
+        set is_forecast = #{foreCastFlag},
+        update_user_id =#{operatorId}
+        where
+        city_id =#{cityId} and
+        city_product_id in
+        <foreach collection="cityProductIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <insert id="addCityProduct" useGeneratedKeys="true" keyProperty="cityProductId"
+            parameterType="com.dailuobo.api.domain.entity.CityProduct">
+        insert into tbl_city_product
+        (`city_id`, `hq_product_id`, `product_no`, `hq_status`, `city_status`, `show_name`,
+        `disable_price`, `weight_unit`, `num_unit`, `origin`, `advise_price`, `remark`,
+        `subtitle`, `keyword`, `icon_tip`, `l1_l2_names`, `delivery_mode`, `city_product_icon`,
+        `city_product_pic`, `detail_url`, `home_flag`, `del_flag`, `create_user_id`,
+        `create_time`, `update_user_id`, `update_time`, `purchase_factor`, `is_share`,
+        `new_user_pro`, `is_under`, `bar_code`, `keep_type`, `vip_limit`, `quality_time`,
+        `length`, `wide`, `high`, `goods_type`, `point_price`, `point_mall_status`, `last_vip_limit`,
+        `merchant_id`,`video_url`)
+        value
+        (#{cityId}, #{hqProductId}, #{productNo}, #{hqStatus}, #{cityStatus}, #{showName},
+        #{disablePrice}, #{weightUnit}, #{numUnit}, #{origin}, #{advisePrice}, #{remark},
+        #{subtitle}, #{keyword}, #{iconTip}, #{l1L2Names}, #{deliveryMode}, #{cityProductIcon},
+        #{cityProductPic}, #{detailUrl}, 0, 1, #{createUserId},
+        now(), #{updateUserId}, now(), null, #{isShare},
+        #{newUserPro}, #{isUnder}, #{barCode}, #{keepType}, #{vipLimit}, #{qualityTime},
+        null, null, null, #{goodsType}, #{pointPrice}, #{pointMallStatus}, 1,
+        #{merchantId},#{videoUrl})
+    </insert>
+
+    <insert id="batchAddCityProduct" 
+            parameterType="com.dailuobo.api.domain.entity.CityProduct">
+        insert into tbl_city_product
+        (`city_id`, `hq_product_id`, `product_no`, `hq_status`,
+        `city_status`, `show_name`, `disable_price`,
+        `weight_unit`, `num_unit`, `origin`,
+        `advise_price`, `remark`, `subtitle`,
+        `keyword`, `icon_tip`, `l1_l2_names`,
+        `delivery_mode`, `city_product_icon`, `city_product_pic`,
+        `detail_url`, `home_flag`, `del_flag`, `create_user_id`, `create_time`,
+        `update_user_id`, `update_time`, `purchase_factor`, `is_share`,
+        `new_user_pro`, `is_under`, `bar_code`, `keep_type`,
+        `vip_limit`, `quality_time`, `length`, `wide`,
+        `high`, `goods_type`, `point_price`, `point_mall_status`,
+        `last_vip_limit`, `merchant_id`)
+        values
+        <foreach collection="list" item="product" separator=",">
+            (
+            #{product.cityId}, #{product.hqProductId}, #{product.productNo}, #{product.hqStatus},
+            #{product.cityStatus}, #{product.showName}, #{product.disablePrice},
+            #{product.weightUnit}, #{product.numUnit}, #{product.origin},
+            #{product.advisePrice}, #{product.remark}, #{product.subtitle},
+            #{product.keyword}, #{product.iconTip}, #{product.l1L2Names},
+            #{product.deliveryMode}, #{product.cityProductIcon}, #{product.cityProductPic},
+            #{product.detailUrl}, 0, #{product.delFlag}, #{product.createUserId}, now(),
+            #{product.updateUserId}, now(), null, #{product.isShare},
+            #{product.newUserPro}, #{product.isUnder}, #{product.barCode}, #{product.keepType},
+            #{product.vipLimit}, #{product.qualityTime}, #{product.length}, #{product.wides},
+            #{product.high}, #{product.goodsType}, #{product.pointPrice}, #{product.pointMallStatus},
+            1,#{product.merchantId}
+            )
+        </foreach>
+        on duplicate key update
+        update_time = values(update_time)
+    </insert>
+
+    <insert id="insertMerchantProductExtraAttr">
+        INSERT INTO ic_product_extra_attr (`city_product_id`, `attr_type`, `attr_name`,
+        `attr_value`, `attr_desc`,`create_user`, `create_time`)
+        values
+          (#{cityProductId}, #{attrType}, 'startHour', #{startHour}, null, #{createUserId}, now())
+        , (#{cityProductId}, #{attrType}, 'endHour', #{endHour}, null, #{createUserId}, now())
+        , (#{cityProductId}, #{attrType}, 'productDesc', #{showName}, null, #{createUserId}, now())
+    </insert>
+
+    <insert id="addOrUpdateMerchantProductRate">
+        INSERT INTO ic_merchant_prod_attr
+        (`city_product_id`, `merchant_id`, `merchant_rate`, `create_time`, `update_time`)
+        VALUES
+        (#{cityProductId}, #{merchantId}, #{merchantRate}, now(), now())
+        ON DUPLICATE KEY UPDATE
+        merchant_rate = #{merchantRate},
+        update_time = now()
+    </insert>
+
+    <select id="productListByCity" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        select t1.*,t1.wide AS wides , t2.hq_product_name as hqProductName from tbl_city_product t1 LEFT JOIN
+        tbl_sales_spec t3 ON t1.city_product_id = t3.city_product_id AND
+        t3.store_id = 0 LEFT JOIN tbl_product_adjustment t4 ON t1.city_product_id = t4.city_product_id AND t4.store_id
+        =0, tbl_hq_product t2
+        where t1.del_flag =1
+        and t2.del_flag =1
+        and t1.hq_product_id = t2.hq_product_id
+        <if test="null!=cityId">
+            and t1.city_id = #{cityId}
+        </if>
+        <if test="null!=isShare">
+            and t1.is_share = #{isShare}
+        </if>
+        <if test="null!=isNew">
+            and t1.new_user_pro = #{isNew}
+        </if>
+        <if test="null!=isUnd">
+            and t1.is_under = #{isUnd}
+        </if>
+        <if test="null!=deliveryMode">
+            and t1.delivery_mode = #{deliveryMode}
+        </if>
+
+        <if test="0==currentStatus">
+            and t1.city_status = 0
+            and t1.hq_status = 1
+        </if>
+
+        <if test="1==currentStatus">
+            and t1.city_status = 1
+            and t1.hq_status = 1
+        </if>
+        <if test="2==currentStatus">
+            and t1.city_status = 2
+            and t1.hq_status = 1
+        </if>
+        <if test="3==currentStatus">
+            and t1.city_status = 2
+            and t1.hq_status = 1
+        </if>
+        <if test="null!=classifyId">
+            and t2.classify_id = #{classifyId}
+        </if>
+        <if test="null!=parentClassifyId">
+            and t2.classify_id in (select classify_id from tbl_product_classify where father_id = #{parentClassifyId)
+        </if>
+        <if test="null!=productNo">
+            and t2.product_no like concat('%', #{productNo}, '%')
+        </if>
+        <if test="null!=hqProductName">
+            and t2.hq_product_name like concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="null!=showName">
+            and t1.show_name like concat('%', #{showName}, '%')
+        </if>
+        <if test="null!=cityProductIds and cityProductIds.size()!=0">
+            and t1.city_product_id in
+            <foreach collection="cityProductIds" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+
+    </select>
+
+
+    <select id="findCityProductByCityId" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        select
+        <if test="businessEnum!=null and businessEnum.getCode()==3">
+            m.available,
+        </if>
+        t.city_product_id, t.city_status,t.city_id, t.city_product_pic,t.city_product_icon, t.disable_price,
+        t.show_name, t.advise_price, t.l1_l2_names,t.del_flag,t.keyword,
+        p.hq_product_id, p.product_no,p.hq_product_name,p.hq_product_icon,p.hq_product_pic,
+        s.real_price,s.avg_price,s.avg_unit ,s.threshold, p.is_standard
+        from tbl_city_product t
+        left join tbl_hq_product p on t.hq_product_id =p.hq_product_id and p.del_flag=1
+        left join tbl_sales_spec s on t.city_product_id=s.city_product_id and t.city_id=s.city_id and s.del_flag=1
+        <if test="businessEnum!=null and businessEnum.getCode()==3">
+            left join tbl_marketing_inventory m on m.city_product_id=t.city_product_id and m.del_flag=1 and
+            m.store_id=0
+        </if>
+        where t.del_flag = 1
+        <if test="cityId!=null">
+            and t.city_id=#{cityId}
+        </if>
+        <if test="storeId!=null">
+            and s.store_id=#{storeId}
+        </if>
+        <if test="storeId==null">
+            and s.store_id=0
+        </if>
+        <if test="cityStatus!=null">
+            and t.city_status=#{cityStatus}
+        </if>
+        <if test="goodsType!=null">
+            and t.goods_type=#{goodsType}
+        </if>
+
+        <if test="isShare!=null">
+            and t.is_share=#{isShare}
+        </if>
+        <if test="hqStatus!=null">
+            and p.status=#{hqStatus}
+        </if>
+        <if test="salesStatus!=null">
+            and s.status=#{salesStatus}
+        </if>
+        <if test="productNo!=null">
+            and t.product_no=#{productNo}
+        </if>
+        <if test="productNoList!=null and productNoList.size()>0">
+            and t.product_no in
+            <foreach collection="productNoList" item="item" close=")" open="(" separator=",">
+                #{item}
+            </foreach>
+        </if>
+
+    </select>
+
+
+    <select id="listCityProductIdsByCityId" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        select city_product_id as cityProductId,
+        t1.city_id as cityId,
+        t1.show_name as showName,
+        t1.city_status as cityStatus,
+        t2.product_no as productNo,
+        t2.is_standard as isStandard
+        from tbl_city_product t1
+        left join `tbl_hq_product` t2 on t1.`hq_product_id`= t2.`hq_product_id`
+        <where>
+            <if test="cityProductIds !=null and cityProductIds.size() > 0">
+                t1.city_product_id in
+                <foreach collection="cityProductIds" item="productId" open="(" close=")" separator=",">
+                    #{productId}
+                </foreach>
+            </if>
+            <if test="cityId !=null">
+                and t1.`city_id` = #{cityId}
+            </if>
+
+            <if test="isShare !=null">
+                and t1.`is_share`=#{isShare}
+            </if>
+
+            <if test="isStandard !=null">
+                and t2.`is_standard`= #{isStandard}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectMerchantCityProduct" resultType="com.dailuobo.api.domain.entity.MerchantCityProduct">
+        SELECT cp.hq_product_id,cp.city_product_id,cp.show_name,cp.city_product_icon,
+        tss.spec_id,tss.city_product_id,tss.real_price
+        FROM tbl_city_product cp
+        JOIN tbl_sales_spec tss ON tss.city_product_id = cp.city_product_id and tss.store_id = 0
+        WHERE cp.del_flag = 1 and cp.city_status = 1 and cp.hq_status = 1 and tss.del_flag = 1
+        and cp.city_id = #{cityId}
+        and cp.merchant_id = #{merchantId}
+        <if test="productName !=null">
+            and cp.show_name like concat('%', #{productName}, '%')
+        </if>
+        <if test="cityProductIds !=null and cityProductIds.size() > 0">
+            and cp.city_product_id in
+            <foreach collection="cityProductIds" item="cityProductId"
+                     open="(" close=")" separator=",">
+                #{cityProductId}
+            </foreach>
+        </if>
+    </select>
+
+
+    <insert id="createCityProduct" keyProperty="cityProductId" useGeneratedKeys="true">
+        insert into tbl_city_product
+        (`city_id`, `hq_product_id`, `product_no`, `hq_status`, `city_status`, `show_name`,
+        `disable_price`, `weight_unit`, `num_unit`, `origin`, `advise_price`, `remark`,
+        `subtitle`, `keyword`, `icon_tip`, `l1_l2_names`, `delivery_mode`, `city_product_icon`,
+        `city_product_pic`, `detail_url`, `home_flag`, `del_flag`, `create_user_id`,
+        `create_time`, `update_user_id`, `update_time`, `purchase_factor`, `is_share`,
+        `new_user_pro`, `is_under`, `bar_code`, `keep_type`, `vip_limit`, `quality_time`,
+        `length`, `wide`, `high`, `goods_type`, `point_price`, `point_mall_status`, `last_vip_limit`,
+        `merchant_id`,`item_id`,`sku_id`,`new_arrival_type`,`seasonal`)
+        value
+        (#{cityId}, #{hqProductId}, #{productNo}, #{hqStatus}, #{cityStatus}, #{showName},
+        #{disablePrice}, #{weightUnit}, #{numUnit}, #{origin}, #{advisePrice}, #{remark},
+        #{subtitle}, #{keyword}, #{iconTip}, #{l1L2Names}, #{deliveryMode}, #{cityProductIcon},
+        #{cityProductPic}, #{detailUrl}, 0, 1, #{createUserId},
+        now(), #{updateUserId}, now(), null, #{isShare},
+        #{newUserPro}, #{isUnder}, #{barCode}, #{keepType}, #{vipLimit}, #{qualityTime},
+        #{length},#{wides}, #{high}, #{goodsType}, #{pointPrice}, #{pointMallStatus}, 1,
+        #{merchantId},#{itemId},#{skuId},#{newArrivalType},#{seasonal})
+    </insert>
+
+
+    <select id="loadCityProductByItemIdAndSkuId" resultType="com.dailuobo.api.domain.entity.CityProduct">
+        select * from  tbl_city_product
+        where del_flag=1
+        and city_id =#{cityId}
+        and sku_id=#{skuId,javaType =Long,jdbcType=BIGINT}
+         and item_id =#{itemId,javaType =Long,jdbcType=BIGINT}
+    </select>
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+
+    <appender name="LogPlatformAppender" class="com.mallcai.framework.logback.appender.LogPlatformAppender">
+        <applicationName>ic-product-core</applicationName>
+    </appender>
+
+    <springProfile name="!product_vpc &amp; !beta">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="LogPlatformAppender"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="product_vpc | beta">
+        <root level="INFO">
+            <appender-ref ref="LogPlatformAppender"/>
+        </root>
+    </springProfile>
+</configuration>

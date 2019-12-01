@@ -1,0 +1,37 @@
+nacos:
+  config:
+    bootstrap:
+      enable: true
+    # 主配置 namespace
+    namespace: 5e089be9-f390-45a8-bc5d-9925fbbff2a7
+    # 主配置 group-id
+    group: ic-product-core
+    # 主配置 data-id
+    data-id: application-test.yml
+    # 主配置 配置文件类型
+    type: yaml
+    # 主配置 最大重试次数
+    max-retry: 10
+    # 主配置 开启自动刷新
+    auto-refresh: true
+    # 主配置 重试时间
+    config-retry-time: 2333
+    # 主配置 配置监听长轮询超时时间
+    config-long-poll-timeout: 46000
+    # 主配置 开启注册监听器预加载配置服务（除非特殊业务需求，否则不推荐打开该参数）
+    enable-remote-sync-config: true
+    # 主配置服务器地址
+    server-addr: http://config.dev.caicaivip.com
+
+spring:
+  application:
+    name: ic-category-test
+
+mybatis:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.mallcai.itemcenter.category.model
+
+logging:
+  level:
+    BackCategory: DEBUG
+    CategoryAttribute: DEBUG

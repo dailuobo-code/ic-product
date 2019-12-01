@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dailuobo.dao.mapper.FrontCategoryRelationMapper">
+    <insert id="create" useGeneratedKeys="true" keyProperty="id">
+        insert into ic_city_fcategory_relation
+        (city_id,front_category_id,relation_type,effect_scope,effect_scope_ids,create_user_id,update_user_id)
+        values
+        (
+        #{cityId},
+        #{frontCategoryId},
+        #{relationType},
+        #{effectScope},
+        #{effectScopeIds},
+        #{createUserId},
+        #{updateUserId}
+        )
+    </insert>
+    <update id="update" parameterType="com.dailuobo.ic.domain.dao.model.category.front.FrontCategoryRelationDO">
+        update ic_city_fcategory_relation
+        <trim prefix="set" suffixOverrides=",">
+            <if test="isDeleted!=null">
+                is_deleted=#{isDeleted},
+            </if>
+            <if test="createUserId!=null">
+                update_user_id =#{updateUserId},
+            </if>
+            <if test="effectScope!=null">
+                effect_scope=#{effectScope},
+            </if>
+            <if test="effectScopeIds!=null">
+                effect_scope_ids=#{effectScopeIds},
+            </if>
+            <if test="relationType!=null">
+                relation_type=#{relationType}
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+
+    <select id="loadFCategoryRelation"
+            resultType="com.dailuobo.ic.domain.dao.model.category.front.FrontCategoryRelationDO">
+        select * from ic_city_fcategory_relation
+        where is_deleted=0 and city_id =#{cityId}
+        <if test="frontCategoryId!=null">
+            and front_category_id =#{frontCategoryId}
+        </if>
+        <if test="effectScope">
+            and effect_scope =#{effectScope}
+        </if>
+    </select>
+    <select id="loadFCategoryRelationById"
+            resultType="com.dailuobo.ic.domain.dao.model.category.front.FrontCategoryRelationDO">
+        select * from ic_city_fcategory_relation
+        where is_deleted=0
+        <if test="id!=null">
+            and id =#{id}
+        </if>
+    </select>
+    <select id="listFCategoryRelation"
+            resultType="com.dailuobo.ic.domain.dao.model.category.front.FrontCategoryRelationDO">
+        select * from ic_city_fcategory_relation
+        where is_deleted= 0 and city_id =#{cityId}
+        <if test="frontCategoryId!=null">
+            and front_category_id =#{frontCategoryId}
+        </if>
+        <if test="relationType!=null">
+            and relation_type = #{relationType}
+        </if>
+    </select>
+
+    <select id="listFrontCategoryRelationsByFrontCategoryIdList"
+            resultType="com.dailuobo.ic.domain.dao.model.category.front.FrontCategoryRelationDO">
+        select * from ic_city_fcategory_relation
+        where is_deleted=0 and city_id =#{cityId}
+        <if test="frontCategoryIdList!=null">
+            and front_category_id in
+            <foreach collection="frontCategoryIdList" item="item" close=")" open="(" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        order by create_time desc
+    </select>
+
+    <update id="deleteRelations">
+        update ic_city_fcategory_relation
+        set is_deleted=1,update_user_id =#{operatorId}
+        where
+        is_deleted=0
+        <if test="id!=null">
+            and id =#{id}
+        </if>
+        <if test="frontCategoryId!=null">
+            and
+            front_cateogry_id = #{frontCategoryId}
+        </if>
+
+    </update>
+</mapper>

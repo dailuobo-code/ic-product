@@ -1,0 +1,130 @@
+{
+  "updatedBy": 1,
+  "itemParam": {
+    "id": 1,
+    "extra": {
+      "key": "value"
+    },
+    "name": "name-updated",
+    "advertise": "adv-updated",
+    "type": "COMMON",
+    "storeType": "NORMAL",
+    "pickType": "NORMAL",
+    "sellerId": 1,
+    "sellerName": "seller",
+    "categoryId": 3,
+    "mainImage": "//example.com/cover.jpg",
+    "videoUrl": "//example.com/cover.mp4",
+    "otherAttributes": [
+      {
+        "group": "NORMAL",
+        "otherAttributes": [
+          {
+            "attrKey": "产地",
+            "attrVal": "中国",
+            "group": "NORMAL",
+            "readOnlyBySeller": true
+          }
+        ]
+      }
+    ],
+    "hashCode": "hashCode",
+    "status": "OFF_SHELF",
+    "version": 1,
+    "tax": "tax-update",
+    "taxCode": "taxCode-update",
+    "isStandard": 2,
+    "newArrivalType": 2,
+    "seasonal": 2,
+    "deliveryMode": 2
+  },
+  "skuParamList": [
+    {
+      "id": 1,
+      "barcode": "s1b",
+      "price": 90,
+      "attributes": [
+        {
+          "attrKey": "颜色",
+          "attrVal": "红色",
+          "image": "//example.com/image-red.jpg"
+        },
+        {
+          "attrKey": "内存",
+          "attrVal": "64G"
+        }
+      ],
+      "extraPrice": {
+        "disablePrice": 120
+      },
+      "version": 2,
+      "enable": true,
+      "salesType": 1,
+      "packageWeight": 100,
+      "packageQuantity": 1
+    },
+    {
+      "id": 2,
+      "barcode": "s2b",
+      "price": 100,
+      "attributes": [
+        {
+          "attrKey": "颜色",
+          "attrVal": "红色",
+          "image": "//example.com/image-red.jpg"
+        },
+        {
+          "attrKey": "内存",
+          "attrVal": "128G"
+        }
+      ],
+      "extraPrice": {
+        "disablePrice": 130
+      },
+      "version": 2,
+      "enable": true,
+      "salesType": 1,
+      "packageWeight": 100,
+      "packageQuantity": 1
+    },
+    {
+      "barcode": "s5b",
+      "price": 200,
+      "attributes": [
+        {
+          "attrKey": "颜色",
+          "attrVal": "金色",
+          "image": "//example.com/image-gold.jpg"
+        },
+        {
+          "attrKey": "内存",
+          "attrVal": "256G"
+        }
+      ],
+      "extraPrice": {
+        "disablePrice": 300
+      },
+      "enable": true,
+      "salesType": 1,
+      "packageWeight": 100,
+      "packageQuantity": 1
+    }
+  ],
+  "itemDetailParam": {
+    "itemId": 1,
+    "remark": "remark-update",
+    "images": [
+      {
+        "name": "img",
+        "url": "//example.com/cover.jpg"
+      }
+    ],
+    "detail": [
+      {
+        "title": "default",
+        "content": "description-updated"
+      }
+    ]
+  },
+  "sellerId": 1
+}

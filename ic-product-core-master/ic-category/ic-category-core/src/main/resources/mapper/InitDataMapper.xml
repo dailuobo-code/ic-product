@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="initData">
+    <select id="selectIcCategoryByName" parameterType="string" resultType="BackCategory">
+        select * from ic_back_category where name=#{pname} and status=1
+    </select>
+
+    <select id="selectHqClassifyIdByName" parameterType="string" resultType="Long">
+        select classify_id from tbl_product_classify where classify_name=#{pname} and del_flag=1
+    </select>
+
+    <insert id="insertIcCategory" parameterType="BackCategory">
+        insert into ic_back_category(id,pid,name,level,status,has_children,has_spu) values
+            (#{id},#{pid},#{name},#{level},#{status},#{hasChildren},#{hasSpu})
+    </insert>
+
+    <insert id="insertCategoryAttr" parameterType="CategoryAttribute">
+        insert into ic_category_attribute(category_id,`group`,attr_key,attr_metas_json,attr_vals_json,extra_json,`index`,status) values
+        <foreach collection="list" item="i" index="index" separator=",">
+            (#{i.categoryId}, #{i.group}, #{i.attrKey}, #{i.attrMetasJson}, #{i.attrValsJson}, #{i.extraJson},#{i.index}, #{i.status})
+        </foreach>
+    </insert>
+</mapper>

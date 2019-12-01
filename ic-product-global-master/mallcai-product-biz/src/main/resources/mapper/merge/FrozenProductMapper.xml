@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mallcai.biz.product.merge.mapper.FrozenProductMapper">
+  
+  <select id="getFrozenProduct" parameterType="map" resultType="com.mallcai.domain.dataobject.product.FrozenProductDO">
+    SELECT
+    c1.city_id city_id,
+    c1.city_product_id city_product_id,
+    c1.bar_code bar_code,
+    a1.`product_no`,
+    c1.show_name,
+    IFNULL(c1.num_unit, '份') AS unit
+    FROM
+    tbl_hq_product a1
+    JOIN tbl_city_product c1 ON a1.hq_product_id = c1.hq_product_id
+    WHERE
+    a1.keep_type = #{keepType}
+    ORDER BY
+    c1.city_product_id
+  </select>
+
+</mapper>

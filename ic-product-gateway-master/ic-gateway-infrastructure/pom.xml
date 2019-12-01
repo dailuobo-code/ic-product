@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ic-product-gateway</artifactId>
+        <groupId>com.dailuobo.itemcenter</groupId>
+        <version>1.2.0-RELEASE</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ic-gateway-infrastructure</artifactId>
+
+    <dependencies>
+        <!-- spring boot 相关-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <!-- dubbo相关 -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- zk相关 -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-dependencies-zookeeper</artifactId>
+            <version>2.7.1</version>
+            <type>pom</type>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- 日志logback -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <!-- 呆萝卜 redis 组件, 使用指南: http://wiki.caicaivip.com/pages/viewpage.action?pageId=10518758 -->
+    <!--    <dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>spring-boot-starter-redis</artifactId>
+            <version>1.0.0-RELEASE</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>mallcai-config-plugin</artifactId>
+            <version>1.1.1-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.23</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>mallcai-config-starter</artifactId>
+            <version>2.0.6-RELEASE</version>   <!-- 对应springboot 2.x -->
+        </dependency>
+        <!-- 中间件 -->
+        <!-- 流控、服务指标监控 -->
+        <dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>mallcai-sentinel-dubbo</artifactId>
+            <version>1.3.2-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>mallcai-logback-appender</artifactId>
+            <version>1.2.0-RELEASE</version>
+        </dependency>
+
+        <!-- 呆萝卜 redis 组件, 使用指南: http://wiki.caicaivip.com/pages/viewpage.action?pageId=10518758 -->
+        <!--<dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>mallcai-redis-plugin</artifactId>
+            <version>1.0.0-RELEASE</version>
+        </dependency>-->
+        <!-- 呆萝卜 分布式 scheduler 组件, 使用指南: http://wiki.caicaivip.com/pages/viewpage.action?pageId=8585992 -->
+        <!--<dependency>
+            <groupId>com.mallcai.framework</groupId>
+            <artifactId>elastic-job-lite-spring</artifactId>
+            <version>1.0.0-RELEASE</version>
+        </dependency>-->
+    </dependencies>
+</project>

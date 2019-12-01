@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.CityMapper">
+    <select id="selectAll" resultType="City" parameterType="map">
+        select * from tbl_city
+        <where>
+            del_flag = 1
+            <if test="cityName != null">
+                and city_name like concat('%', #{cityName}, '%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="statuses != null">
+                and status in
+                <foreach collection="statuses" open="(" close=")" separator=","
+                         item="item">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by city_id
+    </select>
+
+    <update id="update" parameterType="City">
+		update tbl_city set
+		city_name =
+		#{cityName},
+		sale_name=#{saleName},
+		address = #{address},
+		telephone =
+		#{telephone},
+		manager =
+		#{manager},
+		status = #{status},
+		employee_num = #{employeeNum},
+		store_num
+		= #{storeNum},
+		warehouse_num = #{warehouseNum},
+		logistics_num =
+		#{logisticsNum},
+		update_user_id = #{updateUserId},
+		is_limit = #{isLimit}
+		where city_id =
+		#{cityId} and del_flag = 1
+	</update>
+
+    <select id="getDDLCities" parameterType="map" resultType="DDLCity">
+        select city_id, city_name
+        from tbl_city
+        <where>
+            del_flag = 1
+            <if test="cityId != null">
+                and city_id = #{cityId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="statuses != null">
+                and status in
+                <foreach collection="statuses" open="(" close=")" separator=","
+                         item="item">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCityByIdList" resultType="com.dailuobo.api.domain.entity.City">
+        select city_id,city_name
+        from tbl_city
+        where city_id in
+        <foreach collection="cityIdList" open="(" close=")" separator=","
+                 item="cityId">
+            #{cityId}
+        </foreach>
+    </select>
+
+    <select id="getCityNamesByCityIds" parameterType="map" resultType="DDLCity">
+        select city_id, city_name
+        from tbl_city
+        <where>
+            del_flag = 1
+            <if test="cityIds != null">
+                and city_id in
+                <foreach collection="cityIds" open="(" close=")" separator=","
+                         item="item">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getById" resultType="com.dailuobo.api.domain.entity.City">
+        select city_id,city_name
+        from tbl_city
+        where city_id = #{id}
+    </select>
+</mapper>

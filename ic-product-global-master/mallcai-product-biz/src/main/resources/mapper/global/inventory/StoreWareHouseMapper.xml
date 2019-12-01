@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.biz.inventory.dao.mapper.StoreWareHouseMapper">
+
+
+
+
+    <select id="getWareHouseByStoreIds" resultType="com.mallcai.biz.inventory.model.StoreWarehouseDO">
+        select
+        t1.id,
+        t1.warehouse_id as warehouseId ,
+        t1.store_id as storeId ,
+        t1.create_user_id as createUserId ,
+        t2.type,
+        t2.name
+        from erp_warehouse_store t1
+        inner join erp_warehouse t2 on t1.warehouse_id = t2.id
+        where t1.store_id in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getWareHouseByCityId" resultType="com.mallcai.biz.inventory.model.StoreWarehouseDO">
+        select id as warehouseId,city_id  as cityId, type,name
+        from  erp_warehouse
+        where  city_id =#{cityId}
+    </select>
+
+    <insert id="batchBindWarehouse">
+        delete from erp_warehouse_store where store_id=#{storeId};
+        <foreach collection="list" item="item" >
+        insert into erp_warehouse_store(warehouse_id,store_id,create_user_id)
+        values (#{item.warehouseId},#{item.storeId},#{item.createUserId});
+        </foreach>
+
+    </insert>
+
+
+
+    <insert id="insertWarehouse" parameterType="com.mallcai.biz.inventory.model.WarehouseDO" >
+        insert into erp_warehouse
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="cityId != null" >
+                city_id,
+            </if>
+            <if test="name != null" >
+                name,
+            </if>
+            <if test="code != null" >
+                code,
+            </if>
+            <if test="type != null" >
+                type,
+            </if>
+            <if test="status != null" >
+                status,
+            </if>
+            <if test="province != null" >
+                province,
+            </if>
+            <if test="city != null" >
+                city,
+            </if>
+            <if test="county != null" >
+                county,
+            </if>
+            <if test="address != null" >
+                address,
+            </if>
+            <if test="linkmanName != null" >
+                linkman_name,
+            </if>
+            <if test="phone != null" >
+                phone,
+            </if>
+            <if test="linkmanId != null" >
+                linkman_id,
+            </if>
+            <if test="createUserId != null" >
+                create_user_id,
+            </if>
+            <if test="createTime != null" >
+                create_time,
+            </if>
+            <if test="longitude != null" >
+                longitude,
+            </if>
+            <if test="latitude != null" >
+                latitude,
+            </if>
+            <if test="memo != null" >
+                memo,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="cityId != null" >
+                #{cityId,jdbcType=INTEGER},
+            </if>
+            <if test="name != null" >
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="code != null" >
+                #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null" >
+                #{type,jdbcType=INTEGER},
+            </if>
+            <if test="status != null" >
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="province != null" >
+                #{province,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null" >
+                #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="county != null" >
+                #{county,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null" >
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="linkmanName != null" >
+                #{linkmanName,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null" >
+                #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="linkmanId != null" >
+                #{linkmanId,jdbcType=INTEGER},
+            </if>
+            <if test="createUserId != null" >
+                #{createUserId,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null" >
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="longitude != null" >
+                #{longitude,jdbcType=DECIMAL},
+            </if>
+            <if test="latitude != null" >
+                #{latitude,jdbcType=DECIMAL},
+            </if>
+            <if test="memo != null" >
+                #{memo,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateWarehouse" parameterType="com.mallcai.biz.inventory.model.WarehouseDO" >
+        update erp_warehouse
+        <set >
+            <if test="cityId != null" >
+                city_id = #{cityId,jdbcType=INTEGER},
+            </if>
+            <if test="name != null" >
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="code != null" >
+                code = #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null" >
+                type = #{type,jdbcType=INTEGER},
+            </if>
+            <if test="status != null" >
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="province != null" >
+                province = #{province,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null" >
+                city = #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="county != null" >
+                county = #{county,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null" >
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="linkmanName != null" >
+                linkman_name = #{linkmanName,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null" >
+                phone = #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="linkmanId != null" >
+                linkman_id = #{linkmanId,jdbcType=INTEGER},
+            </if>
+            <if test="createUserId != null" >
+                create_user_id = #{createUserId,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="longitude != null" >
+                longitude = #{longitude,jdbcType=DECIMAL},
+            </if>
+            <if test="latitude != null" >
+                latitude = #{latitude,jdbcType=DECIMAL},
+            </if>
+            <if test="memo != null" >
+                memo = #{memo,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>

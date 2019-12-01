@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MarketingSearchMapper">
+
+    <select id="selectAll2" resultType="MarketingVo">
+        SELECT
+        t1.`city_product_id`,
+        t1.`product_no`,
+        t1.city_product_icon,
+        t3.`hq_product_name` hqProductName,
+        t1.`l1_l2_names`,
+        t1.`show_name` showName
+        FROM
+        tbl_city_product t1
+        LEFT JOIN tbl_hq_product t3 ON t1.product_no = t3.product_no
+        <where>
+            t1.del_flag = 1
+            and t1.merchant_id = 0
+            <if test="goodsType!=null"> AND t1.goods_type = #{goodsType}</if>
+            <if test="productNo!=null"> AND t1.product_no = #{productNo}</if>
+            <if test="showName!=null"> AND t1.show_name LIKE concat('%', #{showName}, '%')</if>
+            <if test="hqProductName != null">
+                AND t3.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+            </if>
+            <if test="classifyId != null">
+                AND t3.classify_id = #{classifyId}
+            </if>
+            <if test="parentClassifyId != null">
+                and t3.classify_id in (select classify_id from tbl_product_classify where father_id = #{parentClassifyId})
+            </if>
+            AND t1.city_id = #{cityId}
+            AND t1.delivery_mode = 1
+            AND t3.del_flag = 1
+            AND t1.hq_product_id = t3.hq_product_id
+            AND t1.city_status = 1
+            AND t1.hq_status = 1
+        </where>
+    </select>
+
+    <select id="selectAvailableAndThreshold" resultType="MarketingVo">
+        SELECT
+            t1.city_product_id,
+            SUM(case when t1.is_share = 1 and res.store_id = 0 then res.threshold
+            when t1.is_share = 1 and res.store_id > 0 then 0
+            when t1.is_share != 1 and res.store_id = 0 then 0
+            when t1.is_share != 1 and res.store_id > 1 then res.threshold
+            else 0
+            end)threshold ,
+            SUM(case when t1.is_share = 1 and res.store_id = 0 then res.available
+            when t1.is_share = 1 and res.store_id > 0 then 0
+            when t1.is_share != 1 and res.store_id = 0 then 0
+            when t1.is_share != 1 and res.store_id > 1 then res.available
+            else 0
+            end) available
+        FROM tbl_marketing_inventory res,tbl_city_product t1
+        <where>
+            t1.del_flag = 1
+            and t1.merchant_id = 0
+            and t1.city_product_id = res.city_product_id
+            and (EXISTS(SELECT 1 FROM tbl_store t9 WHERE t9.`status`=2 AND t9.`store_id` = res.`store_id`)OR res.`store_id`=0)
+            <if test="goodsType!=null"> AND t1.goods_type = #{goodsType}</if>
+            <if test="productNo!=null"> AND t1.product_no = #{productNo}</if>
+            <if test="showName!=null"> AND t1.show_name LIKE concat('%', #{showName}, '%')</if>
+            AND t1.city_id = #{cityId}
+            AND t1.delivery_mode = 1
+            AND t1.city_status = 1
+            AND t1.hq_status = 1
+        </where>
+        group by t1.city_product_id
+    </select>
+
+
+    <select id="selectAvailableBase" resultType="MarketingVo">
+        SELECT
+            t1.city_product_id,
+            SUM(case when t1.is_share = 1 and red.store_id = 0 then red.available
+            when t1.is_share = 1 and red.store_id > 0 then 0
+            when t1.is_share != 1 and red.store_id = 0 then 0
+            when t1.is_share != 1 and red.store_id > 1 then red.available
+            else 0
+            end) availableBase
+        FROM tbl_marketing_inventory_base red,tbl_city_product t1
+        <where>
+            t1.del_flag = 1
+            and t1.merchant_id = 0
+            and t1.city_product_id = red.city_product_id
+            and (EXISTS(SELECT 1 FROM tbl_store t9 WHERE t9.`status`=2 AND t9.`store_id` = red.`store_id`) OR red.`store_id`=0)
+            <if test="goodsType!=null"> AND t1.goods_type = #{goodsType}</if>
+            <if test="productNo!=null"> AND t1.product_no = #{productNo}</if>
+            <if test="showName!=null"> AND t1.show_name LIKE concat('%', #{showName}, '%')</if>
+            AND t1.city_id = #{cityId}
+            AND t1.delivery_mode = 1
+            AND t1.city_status = 1
+            AND t1.hq_status = 1
+        </where>
+        group by t1.city_product_id
+    </select>
+</mapper>

@@ -1,0 +1,105 @@
+{
+  "itemDetailParam": {
+    "detail": [
+      {
+        "content": "http://img1.dailuobo.com/test/2019/11/4/1572877025639.jpg"
+      }
+    ],
+    "images": [
+      {
+        "url": "http://img1.dailuobo.com/test/2019/11/4/1572877019527.jpg"
+      }
+    ],
+    "remark": "ceshi 1123"
+  },
+  "itemParam": {
+    "advertise": "focus",
+    "categoryId": 3,
+    "deliveryMode": 1,
+    "isStandard": 1,
+    "keywords": "test",
+    "mainImage": "http://img1.dailuobo.com/test/2019/11/4/1572877019527.jpg",
+    "name": "ceshi_focus",
+    "newArrivalType": 0,
+    "otherAttributes": [
+      {
+        "group": "default",
+        "otherAttributes": [
+          {
+            "attrKey": "长",
+            "attrVal": "10",
+            "group": "default"
+          },
+          {
+            "attrKey": "宽",
+            "attrVal": "10",
+            "group": "default"
+          },
+          {
+            "attrKey": "高",
+            "attrVal": "20",
+            "group": "default"
+          },
+          {
+            "attrKey": "计量单位",
+            "attrVal": "份",
+            "group": "default"
+          },
+          {
+            "attrKey": "颜色",
+            "attrVal": "红色",
+            "group": "default"
+          }
+        ]
+      }
+    ],
+    "pickType": "VEGETABLE",
+    "qualityTime": 100,
+    "seasonal": 0,
+    "sellerId": 0,
+    "sellerName": "自营",
+    "skuAttributes": [
+      {
+        "attrKey": "内存",
+        "skuAttributes": [
+          {
+            "attrKey": "内存",
+            "attrVal": "64G",
+            "image": "http://img1.dailuobo.com/test/2019/11/4/1572877073783.png",
+            "showImage": true
+          }
+        ]
+      }
+    ],
+    "storeType": "NORMAL",
+    "tax": "100",
+    "taxCode": "1",
+    "type": "COMMON"
+  },
+  "sellerId": 0,
+  "serialVersionUID": -5302743869946505523,
+  "skuParamList": [
+    {
+      "attributes": [
+        {
+          "attrKey": "内存",
+          "attrVal": "64G",
+          "image": "http://img1.dailuobo.com/test/2019/11/4/1572877073783.png",
+          "showImage": true
+        }
+      ],
+      "barcode": "23156",
+      "enable": true,
+      "extraPrice": {
+        "disablePrice": 100000,
+        "avgPrice": 8000
+      },
+      "packageQuantity": 1,
+      "packageWeight": 100,
+      "price": 1600,
+      "salesType": "WEIGHT",
+      "skuCode": "11183"
+    }
+  ],
+  "updatedBy": 1
+}

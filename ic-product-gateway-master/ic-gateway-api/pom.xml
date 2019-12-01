@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ic-product-gateway</artifactId>
+        <groupId>com.dailuobo.itemcenter</groupId>
+        <version>1.2.0-RELEASE</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ic-product-gateway-api</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>com.mallcai.router</groupId>
+            <artifactId>mallcai-router-api</artifactId>
+            <version>1.0.1-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dailuobo.itemcenter</groupId>
+            <artifactId>ic-product-mgr-api</artifactId>
+            <version>1.7.7-RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.mallcai.framework</groupId>
+                    <artifactId>mallcai-sentinel-dubbo</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mallcai</groupId>
+            <artifactId>app-city-api</artifactId>
+            <version>1.7.1-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mallcai.backend</groupId>
+            <artifactId>backend-common-framework</artifactId>
+            <version>1.3.0-RELEASE</version>
+        </dependency>
+    </dependencies>
+</project>

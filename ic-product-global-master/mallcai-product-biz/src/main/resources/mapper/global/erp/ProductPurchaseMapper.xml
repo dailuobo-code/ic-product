@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.biz.erp.dao.mapper.ProductPurchaseMapper">
+
+
+	<delete id="deletePurchaseOrderAndDetail" parameterType="java.lang.Integer">
+		delete from erp_purchase_order where id=#{id};
+		delete from erp_purchase_order_detail where purchase_order_id=#{id};
+	</delete>
+
+	<insert id="insertOrder" parameterType="com.mallcai.biz.erp.model.ErpPurchaseOrderDO" >
+		insert into erp_purchase_order
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="id != null" >
+				id,
+			</if>
+			<if test="seq != null" >
+				seq,
+			</if>
+			<if test="cityId != null" >
+				city_id,
+			</if>
+			<if test="warehouseId != null" >
+				warehouse_id,
+			</if>
+			<if test="planId != null" >
+				plan_id,
+			</if>
+			<if test="purchaseOrderNo != null" >
+				purchase_order_no,
+			</if>
+			<if test="status != null" >
+				status,
+			</if>
+			<if test="purchaseUserName != null" >
+				purchase_user_name,
+			</if>
+			<if test="purchaseDate != null" >
+				purchase_date,
+			</if>
+			<if test="createUserId != null" >
+				create_user_id,
+			</if>
+			<if test="createTime != null" >
+				create_time,
+			</if>
+			<if test="updateUserId != null" >
+				update_user_id,
+			</if>
+			<if test="updateTime != null" >
+				update_time,
+			</if>
+			<if test="totalPrice != null" >
+				total_price,
+			</if>
+			<if test="otherSku != null" >
+				other_sku,
+			</if>
+			<if test="supplierId != null" >
+				supplier_id,
+			</if>
+			<if test="paymentMethod != null" >
+				payment_method,
+			</if>
+			<if test="orderType != null" >
+				order_type,
+			</if>
+			<if test="warehousing != null" >
+				warehousing,
+			</if>
+			<if test="distributionArea != null" >
+				distribution_area,
+			</if>
+			<if test="remark != null" >
+				remark,
+			</if>
+			<if test="withdrawing != null" >
+				withdrawing,
+			</if>
+			<if test="realTotalPrice != null" >
+				real_total_price,
+			</if>
+			<if test="repair != null" >
+				repair,
+			</if>
+			<if test="organizationId != null" >
+				organization_id,
+			</if>
+			<if test="realPurchaseDate != null" >
+				real_purchase_date,
+			</if>
+			<if test="repairOrderId != null" >
+				repair_order_id,
+			</if>
+			<if test="instructionsId != null" >
+				instructions_id,
+			</if>
+			<if test="purchaseTaskId != null" >
+				purchase_task_id,
+			</if>
+			<if test="planSalesDate != null" >
+				plan_sales_date,
+			</if>
+			<if test="planReceivedDate != null" >
+				plan_received_date,
+			</if>
+			<if test="planReceivedPeriod != null" >
+				plan_received_period,
+			</if>
+			<if test="needUnloadHelp != null" >
+				need_unload_help,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="id != null" >
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="seq != null" >
+				#{seq,jdbcType=INTEGER},
+			</if>
+			<if test="cityId != null" >
+				#{cityId,jdbcType=INTEGER},
+			</if>
+			<if test="warehouseId != null" >
+				#{warehouseId,jdbcType=INTEGER},
+			</if>
+			<if test="planId != null" >
+				#{planId,jdbcType=INTEGER},
+			</if>
+			<if test="purchaseOrderNo != null" >
+				#{purchaseOrderNo,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null" >
+				#{status,jdbcType=TINYINT},
+			</if>
+			<if test="purchaseUserName != null" >
+				#{purchaseUserName,jdbcType=VARCHAR},
+			</if>
+			<if test="purchaseDate != null" >
+				#{purchaseDate,jdbcType=DATE},
+			</if>
+			<if test="createUserId != null" >
+				#{createUserId,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null" >
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateUserId != null" >
+				#{updateUserId,jdbcType=INTEGER},
+			</if>
+			<if test="updateTime != null" >
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="totalPrice != null" >
+				#{totalPrice,jdbcType=DECIMAL},
+			</if>
+			<if test="otherSku != null" >
+				#{otherSku,jdbcType=DECIMAL},
+			</if>
+			<if test="supplierId != null" >
+				#{supplierId,jdbcType=INTEGER},
+			</if>
+			<if test="paymentMethod != null" >
+				#{paymentMethod,jdbcType=INTEGER},
+			</if>
+			<if test="orderType != null" >
+				#{orderType,jdbcType=INTEGER},
+			</if>
+			<if test="warehousing != null" >
+				#{warehousing,jdbcType=INTEGER},
+			</if>
+			<if test="distributionArea != null" >
+				#{distributionArea,jdbcType=INTEGER},
+			</if>
+			<if test="remark != null" >
+				#{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="withdrawing != null" >
+				#{withdrawing,jdbcType=DECIMAL},
+			</if>
+			<if test="realTotalPrice != null" >
+				#{realTotalPrice,jdbcType=DECIMAL},
+			</if>
+			<if test="repair != null" >
+				#{repair,jdbcType=INTEGER},
+			</if>
+			<if test="organizationId != null" >
+				#{organizationId,jdbcType=INTEGER},
+			</if>
+			<if test="realPurchaseDate != null" >
+				#{realPurchaseDate,jdbcType=VARCHAR},
+			</if>
+			<if test="repairOrderId != null" >
+				#{repairOrderId,jdbcType=INTEGER},
+			</if>
+			<if test="instructionsId != null" >
+				#{instructionsId,jdbcType=VARCHAR},
+			</if>
+			<if test="purchaseTaskId != null" >
+				#{purchaseTaskId,jdbcType=INTEGER},
+			</if>
+			<if test="planSalesDate != null" >
+				#{planSalesDate,jdbcType=DATE},
+			</if>
+			<if test="planReceivedDate != null" >
+				#{planReceivedDate,jdbcType=DATE},
+			</if>
+			<if test="planReceivedPeriod != null" >
+				#{planReceivedPeriod,jdbcType=TINYINT},
+			</if>
+			<if test="needUnloadHelp != null" >
+				#{needUnloadHelp,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	<insert id="batchInsertDetail" parameterType="java.util.List">
+
+		<foreach collection="list" item="item"  >
+			insert into erp_purchase_order_detail
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				<if test="item.id != null">
+					id,
+				</if>
+				<if test="item.purchaseOrderId != null">
+					purchase_order_id,
+				</if>
+				<if test="item.purchaseOrderNo != null">
+					purchase_order_no,
+				</if>
+				<if test="item.cityProductId != null">
+					city_product_id,
+				</if>
+				<if test="item.productNo != null">
+					product_no,
+				</if>
+				<if test="item.showName != null">
+					show_name,
+				</if>
+				<if test="item.purchaseWeight != null">
+					purchase_weight,
+				</if>
+				<if test="item.price != null">
+					price,
+				</if>
+				<if test="item.purchasePrice != null">
+					purchase_price,
+				</if>
+				<if test="item.adjustPurchaseWeight != null">
+					adjust_purchase_weight,
+				</if>
+				<if test="item.adjustPurchasePrice != null">
+					adjust_purchase_price,
+				</if>
+				<if test="item.remark != null">
+					remark,
+				</if>
+				<if test="item.avgUnit != null">
+					avg_unit,
+				</if>
+				<if test="item.numUnit != null">
+					num_unit,
+				</if>
+				<if test="item.unitType != null">
+					unit_type,
+				</if>
+				<if test="item.packageQuantity != null">
+					package_quantity,
+				</if>
+				<if test="item.showName2 != null">
+					show_name2,
+				</if>
+				<if test="item.packageMaxWeight != null">
+					package_max_weight,
+				</if>
+				<if test="item.convertedQuantity != null">
+					converted_quantity,
+				</if>
+				<if test="item.collectWeight != null">
+					collect_weight,
+				</if>
+				<if test="item.rejectionWeight != null">
+					rejection_weight,
+				</if>
+				<if test="item.returnWeight != null">
+					return_weight,
+				</if>
+				<if test="item.realPurchasePrice != null">
+					real_purchase_price,
+				</if>
+				<if test="item.adjustPrice != null">
+					adjust_price,
+				</if>
+				<if test="item.status != null">
+					status,
+				</if>
+				<if test="item.createUserId != null">
+					create_user_id,
+				</if>
+				<if test="item.createTime != null">
+					create_time,
+				</if>
+				<if test="item.updateUserId != null">
+					update_user_id,
+				</if>
+				<if test="item.updateTime != null">
+					update_time,
+				</if>
+				<if test="item.actualLossRate != null">
+					actual_loss_rate,
+				</if>
+				<if test="item.fixedLossRate != null">
+					fixed_loss_rate,
+				</if>
+				<if test="item.settleQty != null">
+					settle_qty,
+				</if>
+				<if test="item.fuxiliaryUnits != null">
+					fuxiliary_units,
+				</if>
+				<if test="item.fuxiliaryUnitsQty != null">
+					fuxiliary_units_qty,
+				</if>
+				<if test="item.fuxiliaryOrderNum != null">
+					fuxiliary_order_num,
+				</if>
+				<if test="item.isFuxiliary != null">
+					is_fuxiliary,
+				</if>
+			</trim>
+			<trim prefix="values (" suffix=")" suffixOverrides=",">
+
+				<if test="item.id != null">
+					#{item.id,jdbcType=INTEGER},
+				</if>
+				<if test="item.purchaseOrderId != null">
+					#{item.purchaseOrderId,jdbcType=INTEGER},
+				</if>
+				<if test="item.purchaseOrderNo != null">
+					#{item.purchaseOrderNo,jdbcType=VARCHAR},
+				</if>
+				<if test="item.cityProductId != null">
+					#{item.cityProductId,jdbcType=INTEGER},
+				</if>
+				<if test="item.productNo != null">
+					#{item.productNo,jdbcType=VARCHAR},
+				</if>
+				<if test="item.showName != null">
+					#{item.showName,jdbcType=VARCHAR},
+				</if>
+				<if test="item.purchaseWeight != null">
+					#{item.purchaseWeight,jdbcType=DECIMAL},
+				</if>
+				<if test="item.price != null">
+					#{item.price,jdbcType=DECIMAL},
+				</if>
+				<if test="item.purchasePrice != null">
+					#{item.purchasePrice,jdbcType=DECIMAL},
+				</if>
+				<if test="item.adjustPurchaseWeight != null">
+					#{item.adjustPurchaseWeight,jdbcType=DECIMAL},
+				</if>
+				<if test="item.adjustPurchasePrice != null">
+					#{item.adjustPurchasePrice,jdbcType=DECIMAL},
+				</if>
+				<if test="item.remark != null">
+					#{item.remark,jdbcType=VARCHAR},
+				</if>
+				<if test="item.avgUnit != null">
+					#{item.avgUnit,jdbcType=VARCHAR},
+				</if>
+				<if test="item.numUnit != null">
+					#{item.numUnit,jdbcType=VARCHAR},
+				</if>
+				<if test="item.unitType != null">
+					#{item.unitType,jdbcType=TINYINT},
+				</if>
+				<if test="item.packageQuantity != null">
+					#{item.packageQuantity,jdbcType=TINYINT},
+				</if>
+				<if test="item.showName2 != null">
+					#{item.showName2,jdbcType=VARCHAR},
+				</if>
+				<if test="item.packageMaxWeight != null">
+					#{item.packageMaxWeight,jdbcType=INTEGER},
+				</if>
+				<if test="item.convertedQuantity != null">
+					#{item.convertedQuantity,jdbcType=DECIMAL},
+				</if>
+				<if test="item.collectWeight != null">
+					#{item.collectWeight,jdbcType=DECIMAL},
+				</if>
+				<if test="item.rejectionWeight != null">
+					#{item.rejectionWeight,jdbcType=DECIMAL},
+				</if>
+				<if test="item.returnWeight != null">
+					#{item.returnWeight,jdbcType=DECIMAL},
+				</if>
+				<if test="item.realPurchasePrice != null">
+					#{item.realPurchasePrice,jdbcType=DECIMAL},
+				</if>
+				<if test="item.adjustPrice != null">
+					#{item.adjustPrice,jdbcType=DECIMAL},
+				</if>
+				<if test="item.status != null">
+					#{item.status,jdbcType=TINYINT},
+				</if>
+				<if test="item.createUserId != null">
+					#{item.createUserId,jdbcType=INTEGER},
+				</if>
+				<if test="item.createTime != null">
+					#{item.createTime,jdbcType=TIMESTAMP},
+				</if>
+				<if test="item.updateUserId != null">
+					#{item.updateUserId,jdbcType=INTEGER},
+				</if>
+				<if test="item.updateTime != null">
+					#{item.updateTime,jdbcType=TIMESTAMP},
+				</if>
+				<if test="item.actualLossRate != null">
+					#{item.actualLossRate,jdbcType=DECIMAL},
+				</if>
+				<if test="item.fixedLossRate != null">
+					#{item.fixedLossRate,jdbcType=DECIMAL},
+				</if>
+				<if test="item.settleQty != null">
+					#{item.settleQty,jdbcType=DECIMAL},
+				</if>
+				<if test="item.fuxiliaryUnits != null">
+					#{item.fuxiliaryUnits,jdbcType=TINYINT},
+				</if>
+				<if test="item.fuxiliaryUnitsQty != null">
+					#{item.fuxiliaryUnitsQty,jdbcType=DECIMAL},
+				</if>
+				<if test="item.fuxiliaryOrderNum != null">
+					#{item.fuxiliaryOrderNum,jdbcType=DECIMAL},
+				</if>
+				<if test="item.isFuxiliary != null">
+					#{item.isFuxiliary,jdbcType=BIT},
+				</if>
+			</trim>
+			;
+		</foreach>
+	</insert>
+
+
+	<select id="selectOrderCnt" parameterType="java.lang.Integer" resultType="java.lang.Long">
+		select count(id) from erp_purchase_order where id=#{id}
+	</select>
+
+
+
+
+
+</mapper>

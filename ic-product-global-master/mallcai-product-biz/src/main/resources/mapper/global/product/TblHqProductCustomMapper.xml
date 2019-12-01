@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mallcai.biz.product.dao.mapper.TblHqProductCustomMapper">
+
+	<update id="delete" parameterType="list">
+		update tbl_hq_product set del_flag=0
+		<where>
+			hq_product_id in
+			<foreach collection="list" open="(" close=")" separator=","
+					 item="item">
+				#{item}
+			</foreach>
+		</where>
+	</update>
+
+	<insert id="addHqProduct" useGeneratedKeys="true" keyProperty="hqProductId"
+			parameterType="com.mallcai.domain.product.request.HqProductVo">
+		insert into tbl_hq_product
+		(`classify_id`, `product_no`, `hq_product_name`, `remark`, `status`, `delivery_mode`,
+		`hq_product_icon`, `hq_product_pic`, `localize_flag`, `del_flag`, `create_user_id`,
+		`create_time`, `update_user_id`, `update_time`, `bar_code`, `keep_type`, `quality_time`,
+		`is_standard`, `pick_classify`, `product_rate`, `length`, `wide`, `high`, `goods_type`,
+		 `product_tax_id`, `third_plat_type`, `audit_status`)
+		value
+		(#{classifyId}, #{productNo}, #{hqProductName}, #{remark}, #{status}, #{deliveryMode},
+		#{hqProductIcon}, #{hqProductPic}, #{localizeFlag}, 1, #{createUserId},
+		now(), #{updateUserId}, now(), #{barCode}, #{keepType}, #{qualityTime},
+		#{isStandard}, #{pickClassify}, null, #{length}, #{wides}, #{high}, #{goodsType},
+		#{productTaxId}, #{thirdPlatType}, 'APPROVAL')
+	</insert>
+
+	<select id="selectHqProductByIds" parameterType="list" resultType="tblHqProduct">
+		select * from tbl_hq_product where hq_product_id in
+		<foreach collection="list" open="(" close=")" separator=","
+				 item="item">
+			#{item}
+		</foreach>
+		and del_flag=1
+	</select>
+	
+	<insert id="addPddProductAttr" useGeneratedKeys="true" keyProperty="id"
+			parameterType="com.mallcai.domain.product.request.PddProductAttr">
+		insert into ic_pdd_good_attr
+		(`product_no`, `pdd_good_id`, `pdd_url`, `status`, `create_time`, `update_time`)
+		value
+		(#{productNo}, #{pddGoodId}, #{pddUrl}, #{status}, #{createTime}, #{updateTime})
+	</insert>
+
+	<select id="getPddProductAttrByPddGoodIds" resultType="com.mallcai.domain.product.request.PddProductAttr">
+		select `id`, `product_no`, `pdd_good_id`, `pdd_url`, `status`, `create_time`, `update_time`
+		from ic_pdd_good_attr
+		where pdd_good_id in
+		<foreach collection="list" item="goodId" open="(" separator="," close=")">
+			#{goodId}
+		</foreach>
+	</select>
+
+</mapper>

@@ -1,0 +1,40 @@
+{
+  "sellerId": 1,
+  "cityItemParam": {
+    "id": 2
+  },
+  "citySkuParamList": [
+    {
+      "id": 5,
+      "price": 500,
+      "threshold": 10,
+      "barcode": "updated",
+      "extraPrice": {
+        "disablePrice": 550
+      }
+    },
+    {
+      "id": 6,
+      "price": 500,
+      "threshold": 10,
+      "extraPrice": {
+        "disablePrice": 550
+      }
+    },
+    {
+      "id": 7,
+      "price": 500,
+      "threshold": 5,
+      "extraPrice": {
+        "disablePrice": 550
+      }
+    },
+    {
+      "id": 8,
+      "price": 500,
+      "extraPrice": {
+        "disablePrice": 550
+      }
+    }
+  ]
+}

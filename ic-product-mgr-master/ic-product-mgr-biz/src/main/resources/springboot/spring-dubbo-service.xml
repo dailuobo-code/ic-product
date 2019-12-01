@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://dubbo.apache.org/schema/dubbo
+       http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+
+    <dubbo:application name="ic-product-mgr"/>
+    <dubbo:protocol name="dubbo" port="20991" threadpool="fixed" threads="400"/>
+
+    <!-- inventory -->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ICMarketingInventoryRedisService"
+                   ref="iCMarketingInventoryRedisService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ICMarketingInventoryService"
+                   ref="iCMarketingInventoryService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ICMarketingInventoryService2"
+                   ref="iCMarketingInventoryService2" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ICMarketingSearchService"
+                   ref="iCMarketingSearchService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ICMarketingStandardAvailableService"
+                   ref="iCMarketingStandardAvailableService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ICSOAMarketingInventoryService"
+                   ref="iCSOAMarketingInventoryService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry"
+                   interface="com.dailuobo.api.inventory.ivy.IVYMarketingInventoryReadWriteService"
+                   ref="iVYMarketingInventoryReadWriteService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ivy.IVYMarketingWhInventoryService"
+                   ref="iVYMarketingWhInventoryService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ivy.IVYMarketingInventoryService"
+                   ref="iVYMarketingInventoryService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry"
+                   interface="com.dailuobo.api.inventory.ivy.IVYMarketingWhInventoryRatioService"
+                   ref="iVYMarketingWhInventoryRatioService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ivy.IVYMarketingWhProductRatioService"
+                   ref="iVYMarketingWhProductRatioService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ivy.IVYStoreSkuInventoryService"
+                   ref="iVYStoreSkuInventoryService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.inventory.ivy.IVYWarehouseSkuWhiteService"
+                   ref="iVYWarehouseSkuWhiteService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.warehouse.WarehouseService"
+                   ref="warehouseService" timeout="30000"/>
+
+
+    <!-- nodale -->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.nosale.ShopNoSaleService"
+                   ref="shopNoSaleService" timeout="30000"/>
+
+    <!-- product -->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrCityProductService"
+                   ref="mgrCityProductService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrHisSalesService"
+                   ref="mgrHisSalesService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrHomebuService" ref="mgrHomebuService"
+                   timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrHqProductForCityService"
+                   ref="mgrHqProductForCityService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrMultiBargainService"
+                   ref="mgrMultiBargainService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrProductPriceTimerService"
+                   ref="mgrProductPriceTimerService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrShelveService" ref="mgrShelveService"
+                   timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrUnShelveService"
+                   ref="mgrUnShelveService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrMerchantCityProductService"
+                   ref="mgrMerchantCityProductService" timeout="30000"/>
+
+    <!-- spec -->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.specification.SpecificationService"
+                   ref="specificationService" timeout="30000"/>
+
+    <!-- underline -->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.underLine.ICUnderLineMarketingService"
+                   ref="underLineMarketingService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.underLine.ICUnderLineSaleService"
+                   ref="underLineSaleService" timeout="30000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.underLine.ICUnderLineSpecificationService"
+                   ref="underLineSpecificationService" timeout="30000"/>
+
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.ic.api.category.front.ICityFrontCategoryReadService"
+                   ref="cityFrontCategoryReadService" timeout="5000"/>
+    <dubbo:service registry="dubboRegistry"
+                   interface="com.dailuobo.ic.api.category.front.ICityFrontCategoryWriteService"
+                   ref="cityFrontCategoryWriteService" timeout="5000"/>
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.ic.api.product.service.MgrCityProductReadService"
+                   ref="mgrCityProductReadService" timeout="5000"/>
+
+    <!-- goods -->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.ic.api.goods.IProductGoodsRelService"
+                   ref="productGoodsRelService" timeout="3000"/>
+
+
+    <!--sync-->
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.product.MgrProductWriteService"
+                   ref="mgrProductWriteService" timeout="5000"/>
+
+    <dubbo:service registry="dubboRegistry" interface="com.dailuobo.api.specification.SpecWriteService"
+                   ref="specWriteService" timeout="5000"/>
+
+</beans>

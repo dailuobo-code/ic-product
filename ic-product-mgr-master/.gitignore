@@ -1,0 +1,12 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea/
+target/
+*.iml
+log
+.DS_Store
+.mvn
+.idea
+log/
+logs/
+.svn/
+.project

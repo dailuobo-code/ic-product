@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MarketingStandardAvailableMapper">
+
+
+    <insert id="addProductAvailableChange" parameterType="com.dailuobo.api.domain.entity.ProductAvailableChange">
+        INSERT INTO tbl_product_available_change
+        <trim prefix = "(" suffix= ")" suffixOverrides = ",">
+            <if test = "cityProductId != null"> city_product_id, </if>
+            <if test = "cityId != null">city_id,</if>
+            <if test = "putName != null and put_name != ''"> put_name, </if>
+            <if test = "execDate != null"> exec_date, </if>
+            <if test = "synchStatus != null"> synch_status, </if>
+            <if test = "synchTime != null"> synch_time, </if>
+            <if test = "available != null"> available, </if>
+            <if test = "createUserId != null">create_user_id,</if>
+            del_flag,
+            create_time
+        </trim>
+        <trim prefix = "values (" suffix = ")" suffixOverrides = ",">
+            <if test = "cityProductId != null"> #{cityProductId}, </if>
+            <if test = "cityId != null">#{cityId},</if>
+            <if test = "putName != null and put_name != ''"> #{putName}, </if>
+            <if test = "execDate != null"> #{execDate}, </if>
+            <if test = "synchStatus != null"> #{synchStatus}, </if>
+            <if test = "synchTime != null"> #{synchTime}, </if>
+            <if test = "available != null"> #{available}, </if>
+            <if test = "createUserId != null"> #{createUserId}, </if>
+            1,
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateProductAvailableChange" parameterType="com.dailuobo.api.domain.entity.ProductAvailableChange">
+        UPDATE tbl_product_available_change
+        <set>
+            <if test="available != null">
+                available = #{available},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="synchStatus != null">
+                synch_status = #{synchStatus},
+            </if>
+            <if test="synchTime != null">
+                synch_time = #{synchTime},
+            </if>
+            update_time = now(),
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <select id="selectDataByProductIdAndDate" resultType="com.dailuobo.api.domain.entity.ProductAvailableChange">
+        select
+        id,city_product_id,put_name,exec_date,synch_status,available,del_flag
+        from tbl_product_available_change
+        where city_product_id = #{cityProductId}
+        and exec_date = #{execDate}
+        and del_flag = 1
+    </select>
+
+    <select id="selectDataById" resultType="com.dailuobo.api.domain.entity.ProductAvailableChange">
+        select
+        tbl_product_available_change.id,
+        tbl_product_available_change.city_product_id,
+        tbl_product_available_change.put_name,
+        tbl_product_available_change.exec_date,
+        tbl_product_available_change.synch_status,
+        tbl_product_available_change.available,
+        tbl_product_available_change.del_flag,
+        tbl_city_product.city_id
+        from tbl_product_available_change
+        inner join tbl_city_product on tbl_product_available_change.city_product_id = tbl_city_product.city_product_id
+        where tbl_product_available_change.id = #{id}
+    </select>
+
+    <select id="selectProductAvailableChangeList" parameterType="com.dailuobo.api.domain.vo.ProductAvailableChangeQueryVo" resultType="com.dailuobo.api.domain.vo.ProductAvailableChangeResponseVo">
+        select
+        tbl_product_available_change.id,
+        tbl_product_available_change.city_product_id cityProductId,
+        tbl_product_available_change.put_name showName,
+        tbl_product_available_change.exec_date execDate,
+        tbl_product_available_change.synch_status status,
+        tbl_product_available_change.available,
+        tbl_city_product.product_no productNo,
+        tbl_hq_product.hq_product_icon hqProductIcon,
+        tbl_hq_product.hq_product_name hqProductName
+        from tbl_product_available_change
+        inner join tbl_city_product on tbl_product_available_change.city_product_id = tbl_city_product.city_product_id
+        inner join tbl_hq_product on tbl_city_product.hq_product_id = tbl_hq_product.hq_product_id
+        where tbl_product_available_change.del_flag = 1
+        and tbl_city_product.city_id = #{cityId}
+        <if test="showName != null and showName != ''">
+            and tbl_city_product.show_name like concat('%', #{showName}, '%')
+        </if>
+        <if test="hqProductName != null and hqProductName != ''">
+            and tbl_hq_product.hq_product_name like concat('%', #{hqProductName}, '%')
+        </if>
+        <if test="execDate != null">
+            and tbl_product_available_change.exec_date = #{execDate}
+        </if>
+        <if test="productNo != null and productNo != ''">
+            and tbl_city_product.product_no like concat('%', #{productNo}, '%')
+        </if>
+        order by tbl_product_available_change.exec_date desc
+    </select>
+</mapper>

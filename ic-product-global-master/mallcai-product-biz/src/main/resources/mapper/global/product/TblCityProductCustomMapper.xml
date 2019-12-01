@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mallcai.biz.product.dao.mapper.TblCityProductCustomMapper">
+
+    <select id="selectCityProductByHqProduct" parameterType="Integer" resultType="tblCityProduct">
+    select city_id,city_product_id from tbl_city_product where  del_flag = 1 AND city_status = 1
+    and hq_product_id=#{productId}
+  </select>
+
+    <select id="selectAllCityProductOfLevel2Category" resultType="productCategoryRelDO">
+        SELECT
+	tpc.classify_id,
+	tpc.classify_no,
+	tcp.city_id,
+	tcp.city_product_id,
+	tcp.create_time,
+IF
+	( tcp.update_time = '0000-00-00 00:00:00', tcp.create_time, tcp.update_time ) AS update_time
+FROM
+	tbl_product_classify tpc
+	JOIN tbl_hq_product thp ON tpc.classify_id = thp.classify_id
+	JOIN tbl_city_product tcp ON thp.hq_product_id = tcp.hq_product_id
+WHERE
+	tpc.del_flag = 1
+	AND thp.del_flag = 1
+	AND tcp.del_flag = 1
+	AND tcp.city_status = 1
+	AND tpc.`level` = 2;
+    </select>
+
+	<select id="selectPointProductCnt" parameterType="Integer" resultType="int">
+		select count(0)
+        from tbl_city_product a
+        where a.product_no = (select product_no from tbl_hq_product where hq_product_id = #{productId})
+        and a.point_mall_status = 1;
+	</select>
+</mapper>

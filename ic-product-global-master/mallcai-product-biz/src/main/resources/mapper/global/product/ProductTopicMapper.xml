@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.biz.product.dao.mapper.ProductTopicMapper">
+    <resultMap id="ProductTopicMapper" type="com.mallcai.biz.product.model.ProductTopicDO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="classifies" property="classifies"/>
+        <result column="order" property="order"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator" property="operator"/>
+        <result column="status" property="status"/>
+        <result column="deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="tb">ic_product_recommend_topic</sql>
+
+    <sql id="vals">
+        #{name},#{classifies},#{order},#{operatorId},#{operator},#{status},0,now(),now()
+    </sql>
+
+    <sql id="cols_all">
+        id, <include refid="cols_no_id" />
+    </sql>
+
+    <sql id="cols_no_id">
+        `name`,`classifies`,`order`,`operator_id`,`operator`,`status`,`deleted`,`create_time`,`update_time`
+    </sql>
+
+    <sql id="queryCondition">
+        <if test="ids != null and ids.size() > 0">
+            and `id` in
+            <foreach collection="ids" open="(" item="id" separator="," close=")">#{id}</foreach>
+        </if>
+        <if test="id != null">and `id` = #{id}</if>
+        <if test="name != null">and `name` = #{name}</if>
+        <if test="nameLike != null">and `name` like concat('%', concat(#{nameLike}, '%'))</if>
+        <if test="status != null">and `status` = #{status}</if>
+        <if test="operatorId != null">and `operator_id` = #{operatorId}</if>
+
+        <if test="deleted != null">and `deleted` = #{deleted}</if>
+        <if test="deleted == null">and `deleted` = 0</if>
+    </sql>
+
+    <sql id="sort_id">
+        order by `id` desc
+    </sql>
+
+    <sql id="sort_order">
+        order by `order` asc
+    </sql>
+
+    <insert id="create" parameterType="com.mallcai.biz.product.model.ProductTopicDO" useGeneratedKeys="true" keyProperty="id">
+        insert into <include refid="tb"/>
+        (<include refid="cols_no_id" />)
+        values
+        (<include refid="vals" />)
+    </insert>
+
+    <delete id="delete">
+        delete from <include refid="tb"/>
+        where id=#{id}
+    </delete>
+
+    <update id="update" parameterType="com.mallcai.biz.product.model.ProductTopicDO">
+        UPDATE
+        <include refid="tb"/>
+        <set>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="classifies != null">`classifies` = #{classifies},</if>
+            <if test="order != null">`order` = #{order},</if>
+            <if test="operatorId != null">`operator_id` = #{operatorId},</if>
+            <if test="operator != null">`operator` = #{operator},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="deleted != null">`deleted` = #{deleted},</if>
+            `update_time` = now()
+        </set>
+        where `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="int" resultMap="ProductTopicMapper">
+        select <include refid="cols_all"/>
+        from <include refid="tb"/>
+        WHERE id = #{id}
+        AND `deleted` = 0
+    </select>
+
+    <select id="findByName" resultMap="ProductTopicMapper">
+        select <include refid="cols_all"/>
+        from <include refid="tb"/>
+        WHERE `name` = #{name}
+        AND `deleted` = 0
+    </select>
+
+    <select id="list" parameterType="map" resultMap="ProductTopicMapper">
+        select <include refid="cols_all"/>
+        from <include refid="tb"/>
+        <where>
+            <include refid="queryCondition"/>
+        </where>
+
+        <if test="order_by != null">order by #{order_by}</if>
+    </select>
+
+    <select id="count" parameterType="map" resultType="long">
+        select count(1)
+        from <include refid="tb"/>
+        <where>
+            <include refid="queryCondition"/>
+        </where>
+    </select>
+
+    <select id="paging" parameterType="map" resultMap="ProductTopicMapper">
+        select <include refid="cols_all"/>
+        from <include refid="tb"/>
+        <where>
+            <include refid="queryCondition"/>
+        </where>
+
+        <if test="order_by != null">order by ${order_by}</if>
+        limit #{offset},#{limit}
+    </select>
+</mapper>

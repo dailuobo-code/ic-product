@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mallcai.biz.category.dao.mapper.IcHqFcategoryRelationCustomMapper">
+    <select id="isAssociateBCategory" parameterType="list" resultType="fcatRelatedItemCntDO">
+        select a.front_category_id,count(backend_category_id) as cnt from ic_hq_fcategory_relation
+        a,ic_hq_fcategory_related_bcategory b
+        where a.id=b.relation_id and a.is_deleted=0 and b.is_deleted=0 and a.relation_type=1 and a.front_category_id in
+        <foreach collection="list" open="(" close=")" separator=","
+                 item="item">
+            #{item}
+        </foreach>
+        group by a.front_category_id
+    </select>
+
+    <select id="isAssociateProduct" parameterType="list" resultType="fcatRelatedItemCntDO">
+        select a.front_category_id,count(hq_product_id) as cnt from ic_hq_fcategory_relation a,ic_hq_fcategory_related_hq_product
+        b
+        where a.id=b.relation_id and a.is_deleted=0 and b.is_deleted=0 and a.relation_type=2 and a.front_category_id in
+        <foreach collection="list" open="(" close=")" separator=","
+                 item="item">
+            #{item}
+        </foreach>
+        group by a.front_category_id
+    </select>
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.HomebuMapper">
+
+    <select id="selectAll" parameterType="map" resultType="com.dailuobo.api.domain.entity.Homebu">
+        SELECT tsp.id,tsp.city_product_id,tcp.product_no,thp.hq_product_name AS product_name,
+            tcp.show_name
+        FROM tbl_special_product tsp
+        JOIN tbl_city_product tcp ON tsp.city_product_id = tcp.city_product_id
+        JOIN tbl_hq_product thp ON tcp.hq_product_id = thp.hq_product_id
+        <where>
+            <if test="cityProductId != null and cityProductId != 0">
+                AND tsp.city_product_id = #{cityProductId}
+            </if>
+            <if test="productNo != null and productNo != 0">
+                AND thp.product_no = #{productNo}
+            </if>
+            <if test="cityId != null and cityId != 0">
+                AND tcp.city_id = #{cityId}
+            </if>
+        </where>
+        Order By tsp.id
+    </select>
+
+    <insert id="add" parameterType="map">
+        INSERT IGNORE INTO tbl_special_product (city_product_id) VALUES (#{cityProductId})
+    </insert>
+
+    <delete id="del">
+        DELETE FROM tbl_special_product WHERE id IN
+        <foreach collection="array" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+</mapper>

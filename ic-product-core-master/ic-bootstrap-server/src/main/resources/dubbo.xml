@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd
+		http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <!--base config-->
+    <dubbo:application name="ic-product-core"/>
+
+    <dubbo:protocol name="dubbo" port="21001" threadpool="fixed" threads="500"/>
+
+    <dubbo:registry id="city" address="${dubbo.city.registry.address}" protocol="zookeeper"/>
+
+    <!--provider-->
+    <dubbo:service interface="com.mallcai.itemcenter.category.api.facade.AttributeBaseReadFacade"
+                   ref="attributeBaseReadFacadeImpl" registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.itemcenter.category.api.facade.BackCategoryReadFacade"
+                   ref="backCategoryReadFacadeImpl" registry="city" timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.itemcenter.item.api.facade.CityItemReadFacade" ref="cityItemReadFacadeImpl"
+                   registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.itemcenter.item.api.facade.CityItemWriteFacade" ref="cityItemWriteFacadeImpl"
+                   registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.itemcenter.item.api.facade.ItemReadFacade" ref="itemReadFacadeImpl"
+                   registry="city" timeout="30000"/>
+    <dubbo:service interface="com.mallcai.itemcenter.item.api.facade.ItemWriteFacade" ref="itemWriteFacadeImpl"
+                   registry="city" timeout="30000"/>
+
+    <dubbo:service interface="com.mallcai.itemcenter.category.api.facade.InitCategoryAndPropertyData"
+                   ref="initCategoryAndPropertyDataImpl" registry="city" timeout="30000"/>
+</beans>

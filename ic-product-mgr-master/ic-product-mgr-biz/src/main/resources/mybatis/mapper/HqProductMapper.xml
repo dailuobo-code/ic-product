@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.HqProductMapper">
+    <select id="parentById" parameterType="int" resultMap="classifyMap">
+        SELECT *
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id}
+    </select>
+
+    <resultMap type="Classify" id="classifyMap">
+        <association property="parent" column="father_id" select="parentById"/>
+    </resultMap>
+
+    <select id="classifyById" parameterType="int" resultMap="classifyMap">
+        SELECT *
+        FROM
+            tbl_product_classify
+        WHERE classify_id = #{id}
+    </select>
+
+    <resultMap type="HqProduct" id="hqProductMap">
+        <association property="classify" column="classify_id"
+                     select="classifyById"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="hqProductMap" parameterType="map">
+        select *,wide AS wides from tbl_hq_product
+        <where>
+            del_flag = 1
+            <if test="classifyId != null">
+                and classify_id = #{classifyId}
+            </if>
+            <if test="parentClassifyId != null">
+                and classify_id in (select classify_id from
+                tbl_product_classify where father_id = #{parentClassifyId})
+            </if>
+            <if test="productNo != null">
+                and product_no like concat('%', #{productNo}, '%')
+            </if>
+            <if test="hqProductName != null">
+                and hq_product_name like concat('%', #{hqProductName}, '%')
+            </if>
+            <if test="statuses != null">
+                and status in
+                <foreach collection="statuses" open="(" close=")" separator=","
+                         item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="hqProductId != null">
+                and hq_product_id not in(#{hqProductId})
+            </if>
+            <if test="isStandard !=null">
+                and is_standard =#{isStandard}
+            </if>
+            <if test="pickClassify !=null">
+                and pick_classify =#{pickClassify}
+            </if>
+            <if test="goodsType != null">
+                and goods_type = #{goodsType}
+            </if>
+        </where>
+        order by product_no
+    </select>
+
+    <update id="status" parameterType="map">
+        update tbl_hq_product set
+        status=#{status},update_user_id=#{userId}
+        where
+        hq_product_id in
+        <foreach collection="hqProductIds" open="(" close=");" separator=","
+                 item="hqProductId">
+            #{hqProductId}
+        </foreach>
+    </update>
+
+    <!-- 下架总部商品时，需要同时更新城市商品状态 -->
+    <update id="updateCityProductStatus" parameterType="map">
+        <!-- 下架总部商品，调整城市商品上架状态为待上架状态 -->
+        <if test="status == 0">
+            update tbl_city_product set hq_status = 0,
+            city_status=0,update_user_id=#{userId}
+            where
+            hq_product_id in
+            <foreach collection="hqProductIds" open="(" close=")" separator=","
+                     item="hqProductId">
+                #{hqProductId}
+            </foreach>
+            and city_status=1;
+        </if>
+
+        <if test="status == 1">
+            update tbl_city_product set hq_status = 1,
+            update_user_id=#{userId}
+            where
+            hq_product_id in
+            <foreach collection="hqProductIds" open="(" close=")" separator=","
+                     item="hqProductId">
+                #{hqProductId}
+            </foreach>
+        </if>
+    </update>
+
+    <insert id="add" parameterType="HqProduct">
+        insert into tbl_hq_product
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="classify.classifyId != null">
+                classify_id,
+            </if>
+            <if test="productNo != null">
+                product_no,
+            </if>
+            <if test="hqProductName != null">
+                hq_product_name,
+            </if>
+            <if test="barCode != null">
+                bar_code,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="hqProductPic != null">
+                hq_product_pic,
+            </if>
+            <if test="val != null">
+            	keep_type,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateUserId != null">
+                update_user_id,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="hqProductIcon != null">
+                hq_product_icon,
+            </if>
+            <if test="deliveryMode != null">
+                delivery_mode,
+            </if>
+            <if test="qualityTime != null">
+                quality_time,
+            </if>
+            <if test="isStandard != null">
+                is_standard,
+            </if>
+            <if test="pickClassify != null">
+                pick_classify,
+            </if>
+            <if test="productRate != null">
+                product_rate,
+            </if>
+            <if test="isStandard!=1">
+                `length`,wide,high,
+            </if>
+            <if test="isStandard==1 and length!=null and length!=''">
+                `length`,
+            </if>
+            <if test="isStandard==1 and wides!=null and wides!=''">
+                `wide`,
+            </if>
+            <if test="isStandard==1 and high!=null and high!=''">
+                `high`,
+            </if>
+            <if test="goodsType != null">
+                `goods_type`,
+            </if>
+            <if test="productTaxId != null">
+                `product_tax_id`
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="classify.classifyId != null">
+                #{classify.classifyId,jdbcType=INTEGER},
+            </if>
+            <if test="productNo != null">
+                #{productNo,jdbcType=VARCHAR},
+            </if>
+            <if test="hqProductName != null">
+                #{hqProductName,jdbcType=VARCHAR},
+            </if>
+            <if test="barCode != null">
+                #{barCode,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="hqProductPic != null">
+                #{hqProductPic,jdbcType=VARCHAR},
+            </if>
+            <if test="val != null">
+            	#{val,jdbcType=INTEGER},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateUserId != null">
+                #{updateUserId,jdbcType=INTEGER},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="hqProductIcon != null">
+                #{hqProductIcon,jdbcType=VARCHAR},
+            </if>
+            <if test="deliveryMode != null">
+                #{deliveryMode},
+            </if>
+            <if test="qualityTime != null">
+                #{qualityTime},
+            </if>
+            <if test="isStandard != null">
+                #{isStandard},
+            </if>
+            <if test="pickClassify != null">
+                #{pickClassify},
+            </if>
+            <if test="productRate != null">
+                #{productRate},
+            </if>
+            <if test="isStandard!=1">
+                null,null,null,
+            </if>
+            <if test="isStandard==1 and length!=null and length!=''">
+                #{length},
+            </if>
+            <if test="isStandard==1 and wides!=null and wides!=''">
+                #{wides},
+            </if>
+            <if test="isStandard==1 and high!=null and high!=''">
+                #{high},
+            </if>
+            <if test="goodsType != null">
+                #{goodsType},
+            </if>
+            <if test="productTaxId != null">
+                #{productTaxId}
+            </if>
+        </trim>
+    </insert>
+
+    <insert id="duplicate" parameterType="HqProduct">
+        insert into tbl_hq_product
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="classify.classifyId != null">
+                classify_id,
+            </if>
+            <if test="productNo != null">
+                product_no,
+            </if>
+            <if test="hqProductName != null">
+                hq_product_name,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="hqProductPic != null">
+                hq_product_pic,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateUserId != null">
+                update_user_id,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="hqProductIcon != null">
+                hq_product_icon,
+            </if>
+            <if test="deliveryMode != null">
+                delivery_mode,
+            </if>
+            <if test="goodsType != null">
+                goods_type
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="classify.classifyId != null">
+                #{classify.classifyId,jdbcType=INTEGER},
+            </if>
+            <if test="productNo != null">
+                #{productNo,jdbcType=VARCHAR},
+            </if>
+            <if test="hqProductName != null">
+                #{hqProductName,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="hqProductPic != null">
+                #{hqProductPic,jdbcType=VARCHAR},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateUserId != null">
+                #{updateUserId,jdbcType=INTEGER},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="hqProductIcon != null">
+                #{hqProductIcon,jdbcType=VARCHAR},
+            </if>
+            <if test="deliveryMode != null">
+                #{deliveryMode},
+            </if>
+            <if test="goodsType != null">
+                #{goodsType}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="delete" parameterType="list">
+        update tbl_hq_product set del_flag=0
+        <where>
+            hq_product_id in
+            <foreach collection="list" open="(" close=")" separator=","
+                     item="item">
+                #{item}
+            </foreach>
+            <!-- 上架状态不允许删除 -->
+            and status=0
+            <!-- 已经本市化的商品不允许删除 -->
+            and hq_product_id not in (select hq_product_id from tbl_city_product
+            where del_flag = 1)
+        </where>
+    </update>
+
+    <update id="update" parameterType="HqProduct">
+        update tbl_hq_product
+        <trim prefix="set" suffixOverrides=",">
+        <if test="hqProductName != null">
+                hq_product_name = #{hqProductName,jdbcType=VARCHAR},
+            </if>
+            <if test="classify.classifyId != null">
+                classify_id = #{classify.classifyId,jdbcType=INTEGER},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="barCode != null">
+                bar_code = #{barCode,jdbcType=VARCHAR},
+            </if>
+            <if test="hqProductPic != null">
+                hq_product_pic = #{hqProductPic,jdbcType=VARCHAR},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId,jdbcType=INTEGER},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="hqProductIcon != null">
+                hq_product_icon = #{hqProductIcon,jdbcType=VARCHAR},
+            </if>
+            <if test="val != null">
+            	keep_type = #{val,jdbcType=INTEGER},
+            </if>
+            <if test="qualityTime != null">
+            	quality_time = #{qualityTime,jdbcType=INTEGER},
+            </if>
+            <if test="isStandard != null">
+                is_standard = #{isStandard,jdbcType=INTEGER},
+            </if>
+            <if test="pickClassify != null">
+                pick_classify = #{pickClassify,jdbcType=INTEGER},
+            </if>
+            <if test="productRate != null">
+                product_rate = #{productRate,jdbcType=INTEGER},
+            </if>
+            <if test="isStandard!=1">
+                `length`=null,wide=null,high=null,
+            </if>
+            <if test="isStandard==1 and length!=null and length!=''">
+                `length`=#{length},
+            </if>
+            <if test="isStandard==1 and wides!=null and wides!=''">
+                wide=#{wides},
+            </if>
+            <if test="isStandard==1 and high!=null and high!=''">
+                high=#{high},
+            </if>
+            <if test="productTaxId != null">
+                product_tax_id = #{productTaxId},
+            </if>
+        </trim>
+        where hq_product_id = #{hqProductId,jdbcType=INTEGER};
+    </update>
+
+    <update id="updateProductName">
+        UPDATE tbl_hq_product t
+        SET t.hq_product_name = #{newName}
+        WHERE t.hq_product_id = #{hqProductId}
+    </update>
+
+    <select id="getCityProductIds" parameterType="list" resultType="CityProductIdAndMode">
+        SELECT city_product_id, delivery_mode FROM tbl_city_product WHERE del_flag = 1 AND hq_product_id IN
+        <foreach collection="list" open="(" close=")" separator="," item="hqProductId">
+            #{hqProductId}
+        </foreach>
+    </select>
+
+    <select id="exist" parameterType="string" resultType="int">
+        SELECT count(1)
+        FROM tbl_hq_product
+        WHERE product_no = #{_parameter}
+              AND del_flag = 1
+        LIMIT 1
+    </select>
+
+    <select id="exist2" parameterType="map" resultType="int">
+        SELECT count(1)
+        FROM tbl_hq_product
+        WHERE classify_id = #{classifyId}
+              AND hq_product_name = #{hqProductName}
+              AND del_flag = 1
+        LIMIT 1
+    </select>
+
+    <select id="getPointProduct" resultType="int">
+        select count(0)
+        from tbl_city_product a
+        where a.product_no = (select product_no from tbl_hq_product where hq_product_id = #{hqProductId})
+        and a.point_mall_status = 1;
+    </select>
+
+    <select id="selectHqProductById" resultType="HqProduct">
+        select
+            hq_product_id,product_no,hq_product_name,bar_code,keep_type,quality_time,product_no,audit_status
+        from tbl_hq_product where hq_product_id = #{hqProductId}
+    </select>
+
+    <select id="selectHqProductByIds" resultType="HqProduct">
+        select
+            hq_product_id,product_no,hq_product_name,bar_code,keep_type,quality_time,product_no,audit_status
+        from tbl_hq_product where hq_product_id IN
+        <foreach collection="hqProductIds" open="(" close=")" separator="," item="hqProductId">
+            #{hqProductId}
+        </foreach>
+    </select>
+
+    <select id="getClassifyIdsByProductNos" resultType="int">
+        select distinct classify_id from tbl_hq_product where product_no in
+        <foreach collection="productNOs" item="productNO" open="(" separator="," close=")">
+            #{productNO}
+        </foreach>
+    </select>
+
+    <sql id="Base_Column_List">
+        hq_product_id, classify_id, product_no, hq_product_name, remark, status, delivery_mode,
+        hq_product_icon, hq_product_pic, localize_flag, del_flag, create_user_id, create_time,
+        update_user_id, update_time, bar_code, keep_type, quality_time, is_standard, pick_classify,
+        product_rate, length, wide, high, goods_type, product_tax_id, audit_status, audit_bill_id,
+        is_forecast, new_arrival_type, seasonal
+    </sql>
+
+    <select id="selectHqProductBySelective" resultType="com.mallcai.bs.model.TblHqProductPO">
+        select <include refid="Base_Column_List"></include>
+        from tbl_hq_product
+        <where>
+            <if test="hqProductIds != null">
+                and hq_product_id IN
+                <foreach collection="hqProductIds" open="(" close=")" separator="," item="hqProductId">
+                    #{hqProductId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

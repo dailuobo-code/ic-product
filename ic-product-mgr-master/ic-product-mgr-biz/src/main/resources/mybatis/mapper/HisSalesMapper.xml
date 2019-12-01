@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.HisSalesMapper">
+
+    <select id="selectAll" parameterType="map" resultType="com.dailuobo.api.domain.entity.HisSales">
+        SELECT tssh.city_id,tssh.city_product_id,tcp.product_no,tcp.show_name,thp.hq_product_name AS product_name,ts.store_name,
+        tssh.real_price,tssh.avg_price,tssh.avg_unit,tssh.unit_type,tssh.threshold,tssh.package_max_weight,
+        tssh.change_flag,tssh.package_quantity,tssh.his_time
+        FROM tbl_sales_spec_his tssh JOIN tbl_city_product tcp ON tssh.city_product_id = tcp.city_product_id
+        JOIN tbl_hq_product thp ON tcp.hq_product_id = thp.hq_product_id
+        JOIN tbl_store ts ON tssh.store_id = ts.store_id
+        <where>
+            <if test="storeId != null and storeId != 0">
+                AND tssh.store_id = #{storeId}
+            </if>
+            <if test="hisTime != null and hisTime != ''">
+                AND tssh.his_time = #{hisTime}
+            </if>
+            <if test="cityProductId != null">
+                AND tssh.city_product_id = #{cityProductId}
+            </if>
+            <if test="cityId != null and cityId != 0">
+                AND tssh.city_id = #{cityId}
+            </if>
+        </where>
+        Order by tssh.his_time DESC,tcp.product_no ASC,tssh.store_id ASC
+    </select>
+
+    <select id="selectCity" parameterType="map" resultType="com.dailuobo.api.domain.entity.HisSales">
+        SELECT tssh.city_id,tssh.city_product_id,tcp.product_no,tcp.show_name,thp.hq_product_name AS product_name,"默认城市" as storeName,
+        tssh.real_price,tssh.avg_price,tssh.avg_unit,tssh.unit_type,tssh.threshold,tssh.package_max_weight,
+        tssh.change_flag,tssh.package_quantity,tssh.his_time
+        FROM tbl_sales_spec_his tssh JOIN tbl_city_product tcp ON tssh.city_product_id = tcp.city_product_id
+        #JOIN tbl_hq_product thp ON tcp.hq_product_id = thp.hq_product_id
+        JOIN tbl_hq_product thp ON tcp.product_no = thp.product_no
+
+        <where>
+
+                 tssh.store_id = 0
+
+            <if test="hisTime != null and hisTime != ''">
+                AND tssh.his_time = #{hisTime}
+            </if>
+            <if test="cityProductId != null">
+                AND tssh.city_product_id = #{cityProductId}
+            </if>
+            <if test="cityId != null and cityId != 0">
+                AND tssh.city_id = #{cityId}
+            </if>
+        </where>
+        Order by tssh.his_time DESC,tcp.product_no ASC,tssh.store_id ASC
+    </select>
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="baseConfig" class="com.mallcai.backend.common.utils.BaseConfig">
+        <property name="configPath">
+            <value>${configPath.path}</value>
+        </property>
+    </bean>
+
+    <bean class="com.mallcai.bs.service.SOAMailSmsSender" depends-on="baseConfig"></bean>
+
+    <bean class="com.mallcai.backend.common.utils.ReceiversConfig">
+        <property name="mobiles" value="${receivers.mobiles}"/>
+        <property name="recipients" value="${receivers.recipients}"/>
+        <property name="pluRecipients" value="${receivers.pluRecipients}"/>
+    </bean>
+
+
+    <bean class="com.dailuobo.api.domain.util.ZooKeeperLock">
+        <property name="connectString" value="${dubbo.city.registry.address}"/>
+        <property name="baseSleepTimeMs" value="1000"/>
+        <property name="maxRetries" value="3"/>
+        <property name="timeoutMs" value="2000"/>
+    </bean>
+
+</beans>

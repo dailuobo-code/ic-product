@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mallcai.biz.product.dao.mapper.ProductServiceFeeMapper">
+    <resultMap id="ProductServiceFeeMap" type="com.mallcai.biz.product.model.ProductServiceFeeDO">
+        <id column="id" property="id"/>
+        <result column="city_id" property="cityId"/>
+        <result column="city_product_id" property="cityProductId"/>
+        <result column="template_id" property="templateId"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator" property="operator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="tb">ic_product_service_fee</sql>
+
+    <sql id="cols_all">
+        id,<include refid="cols_exclude_id"/>
+    </sql>
+
+    <sql id="cols_exclude_id">
+        `city_id`,`city_product_id`,`template_id`,`operator_id`,`operator`,`create_time`,`update_time`
+    </sql>
+
+    <sql id="vals">
+        #{cityId},#{cityProductId},#{templateId},#{operatorId},#{operator},now(),now()
+    </sql>
+
+    <sql id="criteria">
+        <if test="id != null">and id = #{id}</if>
+        <if test="cityProductId != null">and city_product_id = #{cityProductId}</if>
+        <if test="templateId != null">and template_id = #{templateId}</if>
+    </sql>
+
+    <insert id="create" parameterType="com.mallcai.biz.product.model.ProductServiceFeeDO" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO<include refid="tb"/>(<include refid="cols_exclude_id"/>) VALUES(<include refid="vals"/>)
+    </insert>
+
+    <delete id="delete" parameterType="long">
+        delete from <include refid="tb"/>
+        where id = #{id}
+    </delete>
+
+    <update id="update" parameterType="com.mallcai.biz.product.model.ProductServiceFeeDO">
+        UPDATE <include refid="tb"/>
+        <set>
+            <if test="cityId != null">`city_id` = #{cityId},</if>
+            <if test="cityProductId != null">`city_product_id` = #{cityProductId},</if>
+            <if test="templateId != null">`template_id` = #{templateId},</if>
+            <if test="operatorId != null">`operator_id` = #{operatorId},</if>
+            <if test="operator != null">`operator` = #{operator},</if>
+            updateTime = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="findById" resultMap="ProductServiceFeeMap">
+        select id,<include refid="cols_exclude_id"/>
+        from <include refid="tb"/>
+        where id = #{id}
+        AND is_deleted = 0
+    </select>
+
+    <select id="findByIds" parameterType="list" resultMap="ProductServiceFeeMap">
+        select id,<include refid="cols_exclude_id"/>
+        from <include refid="tb"/>
+        where id in
+        <foreach collection="list" open="(" separator="," close=")" item="id">
+            #{id}
+        </foreach>
+        AND is_deleted = 0
+    </select>
+
+    <select id="findByProductId" resultMap="ProductServiceFeeMap">
+        select id,<include refid="cols_exclude_id"/>
+        from <include refid="tb"/>
+        where city_product_id = #{cityProductId}
+        limit 1
+    </select>
+
+    <select id="findByProductIds" resultMap="ProductServiceFeeMap">
+        select id,<include refid="cols_exclude_id"/>
+        from <include refid="tb"/>
+        where city_product_id in
+        <foreach collection="list" open="(" separator="," close=")" item="id">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findAllProductIds" resultType="java.lang.Integer">
+        select city_product_id from <include refid="tb"/>
+    </select>
+</mapper>

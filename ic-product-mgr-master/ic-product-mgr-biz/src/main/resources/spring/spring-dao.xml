@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+<!-- 多数据源 -->
+    <bean id="dataSource" class="com.dailuobo.api.domain.util.DynamicDataSource">
+        <!-- 通过key-value的形式来关联数据源 -->
+        <property name="targetDataSources">
+            <map key-type="java.lang.String">
+                <entry value-ref="caicai" key="caicai"></entry>
+                <entry value-ref="global" key="global"></entry>
+            </map>
+        </property>
+        <property name="defaultTargetDataSource" ref="caicai" >
+        </property>
+    </bean>
+
+    <bean id="beseDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="filters" value="${db.filters}"/>
+        <property name="maxActive" value="${db.maxActive}"/>
+        <property name="initialSize" value="${db.initialSize}"/>
+        <property name="maxWait" value="${db.maxWait}"/>
+        <property name="minIdle" value="${db.minIdle}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${db.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}"/>
+        <property name="validationQuery" value="${db.validationQuery}"/>
+        <property name="testWhileIdle" value="${db.testWhileIdle}"/>
+        <property name="testOnBorrow" value="${db.testOnBorrow}"/>
+        <property name="testOnReturn" value="${db.testOnReturn}"/>
+        <property name="maxOpenPreparedStatements" value="${db.maxOpenPreparedStatements}"/>
+        <property name="removeAbandoned" value="${db.removeAbandoned}"/>
+        <property name="removeAbandonedTimeout" value="${db.removeAbandonedTimeout}"/>
+        <property name="logAbandoned" value="${db.logAbandoned}"/>
+        <property name="connectionInitSqls" value="SET names utf8mb4"/>
+    </bean>
+
+    <bean id="caicai" parent="beseDataSource">
+        <property name="driverClassName" value="${db.driverClassName}"/>
+        <property name="url" value="${db.url}&amp;zeroDateTimeBehavior=convertToNull"/>
+        <property name="username" value="${db.username}"/>
+        <property name="password" value="${db.password}"/>
+    </bean>
+
+    <bean id="global" parent="beseDataSource">
+        <property name="driverClassName" value="${db.driverClassName}"/>
+        <property name="url" value="${global.db.url}&amp;zeroDateTimeBehavior=convertToNull"/>
+        <property name="username" value="${global.db.username}"/>
+        <property name="password" value="${global.db.password}"/>
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="vfs" value="org.mybatis.spring.boot.autoconfigure.SpringBootVFS"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="typeAliasesPackage" value="com.dailuobo.api.domain.entity,com.dailuobo.api.domain.vo,com.dailuobo.api.domain.soa
+,com.dailuobo.ic.domain.dao.model"/>
+        <property name="configLocation" value="classpath:/mybatis/config/mybatis.xml"/>
+        <!--<property name="mapperLocations" value="classpath*:/mybatis/*mapper/*.xml"/>-->
+
+        <property name="mapperLocations">
+            <array>
+                <value>classpath*:/mybatis/mapper/*.xml</value>
+                <value>classpath*:/mybatis/mapper/ivy/*.xml</value>
+            </array>
+        </property>
+
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <value>
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+
+    <mybatis:scan base-package="com.mallcai.bs.mapper,com.dailuobo.biz.mapper,dailuobo.dao.mapper" factory-ref="sqlSessionFactory"/>
+</beans>

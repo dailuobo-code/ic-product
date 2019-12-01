@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.UnSpecMapper">
+
+
+    <select id="getDefaultSpec" parameterType="map" resultType="UnSpec">
+        SELECT * FROM und_sales_spec
+        WHERE
+            city_product_id = #{cityProductId}
+            AND store_id = 0
+            AND del_flag = 1
+    </select>
+    
+        <insert id="create" parameterType="UnSpec" useGeneratedKeys="true" keyColumn="und_spec_id" keyProperty="undSpecId">
+        INSERT INTO und_sales_spec
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cityProductId != null">
+                city_product_id,
+            </if>
+            <if test="realPrice != null">
+                real_price,
+            </if>
+            <if test="avgPrice != null">
+                avg_price,
+            </if>
+            <if test="avgUnit != null">
+                avg_unit,
+            </if>
+            <if test="unitType != null">
+                unit_type,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="standardFlag != null">
+                standard_flag,
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight,
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity,
+            </if>
+            <if test="changeFlag != null">
+                change_flag,
+            </if>
+            <if test="storeId != null">
+                store_id,
+            </if>
+            <if test="cityId != null">
+                city_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cityProductId != null">
+                #{cityProductId},
+            </if>
+            <if test="realPrice != null">
+                #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                #{unitType},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId},
+            </if>
+            <if test="standardFlag != null">
+                #{standardFlag},
+            </if>
+            <if test="packageMaxWeight != null">
+                #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                #{changeFlag},
+            </if>
+            <if test="storeId != null">
+                #{storeId},
+            </if>
+            <if test="cityId != null">
+                #{cityId},
+            </if>
+        </trim>
+    </insert>
+    
+    
+        <update id="update" parameterType="UnSpec">
+        UPDATE und_sales_spec
+        <set>
+            <if test="realPrice != null">
+                real_price = #{realPrice},
+            </if>
+            <if test="avgPrice != null">
+                avg_price = #{avgPrice},
+            </if>
+            <if test="avgUnit != null">
+                avg_unit = #{avgUnit},
+            </if>
+            <if test="unitType != null">
+                unit_type = #{unitType},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="threshold != null">
+                threshold = #{threshold},
+            </if>
+            <if test="packageMaxWeight != null">
+                package_max_weight = #{packageMaxWeight},
+            </if>
+            <if test="packageQuantity != null">
+                package_quantity = #{packageQuantity},
+            </if>
+            <if test="changeFlag != null">
+                change_flag = #{changeFlag},
+            </if>
+        </set>
+        WHERE und_spec_id = #{undSpecId}
+        LIMIT 1;
+    </update>
+    
+	<select id="getUnSpecs" resultType="UndSpecVo">
+	 SELECT
+            IFNULL(t2.und_spec_id, t3.und_spec_id)                       AS und_spec_id,
+            IFNULL(t2.city_product_id, t3.city_product_id)       AS city_product_id,
+            IFNULL(t2.real_price, t3.real_price)                 AS real_price,
+            IFNULL(t2.avg_price, t3.avg_price)                   AS avg_price,
+            IFNULL(t2.avg_unit, t3.avg_unit)                     AS avg_unit,
+            IFNULL(t2.unit_type, t3.unit_type)                   AS unit_type,
+            IFNULL(t2.threshold, t3.threshold)                              AS threshold,
+            IFNULL(t2.package_max_weight, t3.package_max_weight) AS package_max_weight,
+            IFNULL(t2.package_quantity, t3.package_quantity)     AS package_quantity,
+            IFNULL(t2.change_flag, t3.change_flag)               AS change_flag,
+            t1.store_id,
+            t1.store_name,
+            IFNULL(t4.adjustment_factor, t5.adjustment_factor)   AS delta,
+            IFNULL(t4.upper_limit, t5.upper_limit)               AS upperLimit,
+            IFNULL(t4.lower_limit, t5.lower_limit)               AS lowerLimit
+        FROM
+            tbl_store t1 LEFT JOIN und_sales_spec t2
+                ON t1.store_id = t2.store_id AND t2.city_product_id = #{cityProductId}
+            LEFT JOIN tbl_product_adjustment t4 ON t1.store_id = t4.store_id AND t4.city_product_id = #{cityProductId}
+            ,
+            und_sales_spec t3 LEFT JOIN tbl_product_adjustment t5
+                ON t3.city_product_id = t5.city_product_id AND t3.store_id = t5.store_id
+        WHERE
+            t1.city_id = #{cityId}
+            AND t1.status = 2
+            AND t3.city_product_id = #{cityProductId}
+            AND t3.store_id = 0
+	
+	</select>
+    
+    <select id="getStoreUnSpecs" resultType="UndSpecVo">
+        SELECT 
+    	cp.city_product_id,
+		cp.product_no,
+		cp.city_product_icon,
+		hp.hq_product_name,
+		cp.show_name,
+		IFNULL(uss.real_price, uss2.real_price) AS real_price,
+        IFNULL(uss.avg_price, uss2.avg_price) AS avg_price,
+        IFNULL(uss.avg_unit, uss2.avg_unit) AS avg_unit,
+        IFNULL(uss.unit_type, uss2.unit_type) AS unit_type,
+        IFNULL(uss.package_max_weight, uss2.package_max_weight) AS package_max_weight,
+        IFNULL(uss.package_quantity, uss2.package_quantity) AS package_quantity,
+        IFNULL(uss.change_flag, uss2.change_flag) AS change_flag,
+		hp.classify_id
+	FROM tbl_city_product cp
+	LEFT JOIN und_sales_spec uss ON uss.city_product_id = cp.city_product_id AND uss.store_id = #{storeId},
+		tbl_hq_product hp,
+		tbl_product_classify pc1,
+		tbl_product_classify pc2,
+		und_sales_spec uss2
+	WHERE cp.is_under = 1
+	AND cp.city_product_id = uss2.city_product_id
+	AND cp.hq_product_id = hp.hq_product_id
+	AND hp.classify_id = pc1.classify_id
+	AND pc1.father_id = pc2.classify_id
+	AND uss2.store_id = 0
+    <if test="cityId != null"> AND cp.city_id = #{cityId} </if>
+	<if test="classifyId != null"> AND pc1.classify_id = #{classifyId} </if>
+	<if test="parentClassifyId != null"> 
+	AND pc1.classify_id in (SELECT classify_id 
+     						FROM tbl_product_classify 
+     						WHERE father_id = #{parentClassifyId})
+    </if>
+    <if test="productNo != null"> AND cp.product_no = #{productNo} </if>
+	<if test="showName != null"> AND cp.show_name LIKE concat('%', #{showName}, '%') </if>
+	<if test="hqProductName != null"> AND hp.hq_product_name LIKE concat('%', #{hqProductName}, '%') </if>
+    
+    
+    </select>
+    
+    <select id="selectUnderProducts" resultType="UndProductVo">
+    SELECT uss.und_spec_id,hp.hq_product_name,cp.* FROM tbl_city_product cp , tbl_hq_product hp,und_sales_spec uss
+	WHERE cp.is_under =1
+        <if test="cityId != null">
+    and cp.city_id = #{cityId}
+        </if>
+        <if test="classifyId != null">
+	AND hp.classify_id = #{classifyId}
+	</if>
+	<if test="parentClassifyId != null">
+                and hp.classify_id in (select classify_id from
+                tbl_product_classify where father_id = #{parentClassifyId})
+    </if>
+    <if test="productNo != null">
+	AND cp.product_no LIKE concat('%', #{productNo}, '%')
+	</if>
+	<if test="showName != null">
+	AND cp.show_name LIKE concat('%', #{showName}, '%')
+	</if>
+	<if test="hqProductName != null">
+	AND hp.hq_product_name LIKE concat('%', #{hqProductName}, '%')
+	</if>
+	AND cp.product_no = hp.product_no
+	AND uss.city_product_id = cp.city_product_id
+	AND uss.store_id = 0
+    
+    </select>
+
+</mapper>

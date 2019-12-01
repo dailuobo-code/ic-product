@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Item">
+    <resultMap id="ItemMap" type="Item">
+        <id property="id" column="id"/>
+        <result property="spuId" column="spu_id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="sellerName" column="seller_name"/>
+        <result property="serviceFeeTempId" column="service_fee_temp_id"/>
+        <result property="name" column="name"/>
+        <result property="keywords" column="keywords"/>
+        <result property="advertise" column="advertise"/>
+        <result property="mainImage" column="main_image"/>
+        <result property="videoUrl" column="video_url"/>
+        <result property="status" column="status"/>
+        <result property="type" column="type"/>
+        <result property="storeType" column="storeType"/>
+        <result property="pickType" column="pickType"/>
+        <result property="highPrice" column="high_price"/>
+        <result property="lowPrice" column="low_price"/>
+        <result property="skuAttributesJson" column="sku_attributes_json"/>
+        <result property="otherAttributesJson" column="other_attributes_json"/>
+        <result property="extraJson" column="extra_json"/>
+        <result property="hashCode" column="hash_code"/>
+        <result property="version" column="version"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="createdBy" column="created_by"/>
+    </resultMap>
+
+    <sql id="table_name">
+        ic_item
+    </sql>
+
+    <sql id="columns_all">
+        id,
+        <include refid="columns_exclude_id"/>
+    </sql>
+
+    <sql id="columns_exclude_id">
+        `spu_id`, `category_id`, `item_code`, `seller_id`, `seller_name`, `service_fee_temp_id`, `name`, `keywords`, `advertise`,
+        `main_image`, `video_url`, `status`, `type`, `storeType`, `pickType`, `high_price`, `low_price`,
+        `sku_attributes_json`, `other_attributes_json`, `extra_json`, `hash_code`, `version`, `updated_by`, `created_by`,
+        `update_time`, `create_time`
+    </sql>
+
+    <sql id="values_exclude_id">
+        #{spuId}, #{categoryId}, #{itemCode}, #{sellerId}, #{sellerName}, #{serviceFeeTempId}, #{name}, #{keywords}, #{advertise},
+        #{mainImage}, #{videoUrl}, #{status}, #{type}, #{storeType}, #{pickType}, #{highPrice}, #{lowPrice},
+        #{skuAttributesJson}, #{otherAttributesJson}, #{extraJson}, #{hashCode}, 0, #{updatedBy}, #{updatedBy},
+        now(), now()
+    </sql>
+
+    <sql id="update_check">
+        AND `version` = #{version}
+        AND `status` != -3
+    </sql>
+
+    <sql id="update_execute">
+        ,`version` = `version` + 1
+        ,`update_time` = now()
+    </sql>
+
+    <sql id="visible">
+        AND `status` != -3
+    </sql>
+
+    <sql id="custom_sort_type">
+        <if test="sortType != null">
+            <if test="sortType == 1">ASC</if>
+            <if test="sortType == 2">DESC</if>
+        </if>
+    </sql>
+
+    <sql id="custom_sort">
+        <if test="sortBy != null">
+            <if test="sortBy == 'id'">ORDER BY `id`
+                <include refid="custom_sort_type"/>
+            </if>
+            <if test="sortBy == 'updateTime'">ORDER BY update_time
+                <include refid="custom_sort_type"/>
+            </if>
+        </if>
+    </sql>
+
+    <sql id="criteria">
+        <if test="spuId != null">AND `spu_id` = #{spuId}</if>
+        <if test="categoryId != null">AND `category_id` = #{categoryId}</if>
+        <if test="itemCode != null">AND `item_code` = #{itemCode}</if>
+        <if test="sellerId != null">AND `seller_id` = #{sellerId}</if>
+        <if test="sellerName != null">AND `seller_name` = #{sellerName}</if>
+        <if test="serviceFeeTempId != null">AND `service_fee_temp_id` = #{serviceFeeTempId}</if>
+        <if test="name != null">AND `name` = #{name}</if>
+        <if test="nameLike != null">AND `name` LIKE CONCAT('%', #{nameLike} ,'%')</if>
+        <if test="advertise != null">AND `advertise` = #{advertise}</if>
+        <if test="mainImage != null">AND `main_image` = #{mainImage}</if>
+        <if test="videoUrl != null">AND `video_url` = #{videoUrl}</if>
+        <if test="status != null">AND `status` = #{status}</if>
+        <if test="type != null">AND `type` = #{type}</if>
+        <if test="storeType != null">AND `storeType` = #{storeType}</if>
+        <if test="pickType != null">AND `pickType` = #{pickType}</if>
+        <if test="highPrice != null">AND `high_price` = #{highPrice}</if>
+        <if test="lowPrice != null">AND `low_price` = #{lowPrice}</if>
+        <if test="skuAttributesJson != null">AND `sku_attributes_json` = #{skuAttributesJson}</if>
+        <if test="otherAttributesJson != null">AND `other_attributes_json` = #{otherAttributesJson}</if>
+        <if test="extraJson != null">AND `extra_json` = #{extraJson}</if>
+        <if test="hashCode != null">AND `hash_code` = #{hashCode}</if>
+        <if test="version != null">AND `version` = #{version}</if>
+        <if test="updatedBy != null">AND `updated_by` = #{updatedBy}</if>
+        <if test="createdBy != null">AND `created_by` = #{createdBy}</if>
+        <if test="categoryIds != null">
+            AND `category_id` in
+            <foreach item="id" collection="categoryIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="create" parameterType="Item" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        (<include refid="values_exclude_id"/>)
+    </insert>
+
+    <insert id="creates" parameterType="Item" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        <include refid="table_name"/>
+        (<include refid="columns_exclude_id"/>)
+        VALUES
+        <foreach collection="list" item="i" index="index" separator=",">
+            (#{i.spuId}, #{i.categoryId}, #{i.itemCode}, #{i.sellerId}, #{i.sellerName}, #{i.serviceFeeTempId},
+            #{i.name},#{i.keywords}, #{i.advertise}, #{i.mainImage}, #{i.videoUrl}, #{i.status}, #{i.type}, #{i.storeType},
+            #{i.pickType}, #{i.highPrice}, #{i.lowPrice}, #{i.skuAttributesJson}, #{i.otherAttributesJson},
+            #{i.extraJson}, #{i.hashCode}, 0, #{i.updatedBy}, #{i.updatedBy}, now(), now())
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="ItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+        <include refid="visible"/>
+        LIMIT 1
+    </select>
+
+    <select id="findByIds" parameterType="list" resultMap="ItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="update" parameterType="Item">
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            <if test="spuId != null">`spu_id` = #{spuId},</if>
+            <if test="categoryId != null">`category_id` = #{categoryId},</if>
+            <if test="itemCode != null">`item_code` = #{itemCode},</if>
+            <if test="sellerId != null">`seller_id` = #{sellerId},</if>
+            <if test="sellerName != null">`seller_name` = #{sellerName},</if>
+            <if test="serviceFeeTempId != null">`service_fee_temp_id` = #{serviceFeeTempId},</if>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="keywords != null">`keywords` = #{keywords},</if>
+            <if test="advertise != null">`advertise` = #{advertise},</if>
+            <if test="mainImage != null">`main_image` = #{mainImage},</if>
+            <if test="videoUrl != null">`video_url` = #{videoUrl},</if>
+            <if test="status != null">`status` = #{status},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="storeType != null">`storeType` = #{storeType},</if>
+            <if test="pickType != null">`pickType` = #{pickType},</if>
+            <if test="highPrice != null">`high_price` = #{highPrice},</if>
+            <if test="lowPrice != null">`low_price` = #{lowPrice},</if>
+            <if test="skuAttributesJson != null">`sku_attributes_json` = #{skuAttributesJson},</if>
+            <if test="otherAttributesJson != null">`other_attributes_json` = #{otherAttributesJson},</if>
+            <if test="extraJson != null">`extra_json` = #{extraJson},</if>
+            <if test="hashCode != null">`hash_code` = #{hashCode},</if>
+            <if test="updatedBy != null">`updated_by` = #{updatedBy},</if>
+            <if test="createdBy != null">`created_by` = #{createdBy},</if>
+        </set>
+        <include refid="update_execute"/>
+        WHERE `id` = #{id}
+        <include refid="update_check"/>
+    </update>
+
+    <update id="updateStatusCheckSellerId" parameterType="map">
+        UPDATE
+        <include refid="table_name"/>
+        SET `status` = #{status}
+        <include refid="update_execute"/>
+        WHERE `id` = #{id}
+        AND `seller_id` = #{sellerId}
+        <include refid="update_check"/>
+    </update>
+
+    <delete id="delete" parameterType="long">
+        DELETE FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </delete>
+
+    <select id="count" parameterType="map" resultType="long">
+        SELECT COUNT(1)
+        FROM
+        <include refid="table_name"/>
+        <where>
+            <include refid="criteria"/>
+            <include refid="visible"/>
+        </where>
+    </select>
+
+    <select id="paging" parameterType="map" resultMap="ItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <where>
+            <include refid="criteria"/>
+            <include refid="visible"/>
+        </where>
+        ORDER BY `id` DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="list" parameterType="map" resultMap="ItemMap">
+        SELECT
+        <include refid="columns_all"/>
+        FROM
+        <include refid="table_name"/>
+        <where>
+            <include refid="criteria"/>
+            <include refid="visible"/>
+        </where>
+        ORDER BY `id` DESC
+    </select>
+
+</mapper>

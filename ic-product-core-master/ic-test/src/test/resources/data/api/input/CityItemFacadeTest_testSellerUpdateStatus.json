@@ -1,0 +1,12 @@
+{
+  "targetList": [
+    {
+      "id": 2,
+      "version": 0
+    }
+  ],
+  "sellerId": 1,
+  "cityId": 30,
+  "status": "ON_SHELF",
+  "updatedBy": 1
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.MysqlProductSignMapper">
+
+
+    <select id="getSignValue" parameterType="int" resultType="com.dailuobo.api.domain.entity.SignValue">
+        select s.city_id as cityId,s.`city_product_id` as cityProductId,detail.store_id as storeId,s.sign_val as pennySignValue,s.effective_time as effectiveTime
+        from tbl_product_sign  s
+        left join tbl_product_sign_detail detail on  s.id = detail.sign_id
+        where s.city_product_id = #{cityProductId} and s.city_id =#{cityId}  and detail.store_id =#{storeId}  and s.is_del =1 and date_format(effective_time,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d')
+        limit 1
+	</select>
+
+
+</mapper>

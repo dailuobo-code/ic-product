@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mallcai.bs.mapper.NoSaleMapper">
+
+<select id="selectAll" resultType="NoSaleVo">
+	SELECT sn.id,u.real_name AS createUsername,u2.real_name AS updateUsername,p.show_name,s.store_name,p.product_no,sn.store_id,
+	DATE_FORMAT(sn.create_time, '%Y-%m-%d %H:%i:%s')AS create_time,
+	DATE_FORMAT(sn.update_time, '%Y-%m-%d %H:%i:%s')AS update_time
+	FROM tbl_store_no_sale sn 
+	LEFT JOIN tbl_user u ON sn.create_user = u.user_id 
+	LEFT JOIN tbl_user u2 ON u2.user_id = sn.update_user,
+	tbl_city_product p,
+	tbl_store s
+	WHERE
+	sn.city_id = #{cityId} 
+	AND
+	sn.city_product_id = p.city_product_id 
+	AND sn.store_id = s.store_id
+	AND sn.status = '1' and p.merchant_id = 0
+		<if test="storeId != null">
+            AND sn.store_id = #{storeId}
+        </if>
+        <if test="productNo != null">
+            AND p.product_no LIKE concat('%', #{productNo}, '%')
+        </if>
+        <if test="showName != null">
+            AND p.show_name LIKE concat('%', #{showName}, '%')
+        </if>
+        ORDER BY sn.store_id
+</select>
+	
+	<insert id="add" parameterType="map">
+        INSERT IGNORE INTO tbl_store_no_sale(city_id, city_product_id,
+        create_user, store_id, status, create_time) VALUES
+        <foreach collection="storeNoSales" item="storeNoSale" separator="," close=";">
+            (#{storeNoSale.cityId}, #{storeNoSale.cityProductId},
+            #{storeNoSale.createUser}, #{storeNoSale.storeId},#{storeNoSale.status},now())
+        </foreach>
+    </insert>
+    <!-- 2019-01-07 yr 改为物理删除 -->
+<!--     <update id="delete">
+        UPDATE tbl_store_no_sale
+        SET update_user = #{userId},status = '2'
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=");" separator=",">
+            #{id}
+        </foreach>
+    </update> -->
+    <!--SELECT a.id,a.city_id,a.store_id,a.city_product_id,a.create_user,a.create_time,a.update_user,a.update_time,a.status,b.spec_id
+	-->
+    <select id="getCityStoreNoSaleProduct" parameterType="map" resultType="NoSaleDto">
+		SELECT a.city_product_id,b.spec_id
+		FROM tbl_store_no_sale a LEFT JOIN tbl_sales_spec b ON a.city_product_id = b.city_product_id AND b.`city_id`=#{city_id} AND b.`store_id`=#{store_id} 
+		WHERE a.status = 1 and a.city_id=#{city_id} and a.store_id=#{store_id}
+	</select>
+	
+	<delete id="delete">
+		DELETE FROM tbl_store_no_sale
+	 	WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=");" separator=",">
+            #{id}
+        </foreach>
+	</delete>
+</mapper>
